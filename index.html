@@ -1009,7 +1009,9 @@ function cashFilter(){window.__cashFilters={period:document.getElementById('cash
 function newCash(){openModal('Novo lançamento',`<div class="formgrid"><div class="field"><label>Tipo</label><select id="ctype"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div><div class="field"><label>Valor</label><input id="cvalue" type="number" step="0.01"></div><div class="field"><label>Método</label><select id="cmethod"><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Outro</option></select></div><div class="field"><label>Descrição</label><input id="cdesc"></div></div><div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveCash()">Salvar</button></div>`)}
 function saveCash(){const value=Number(document.getElementById('cvalue').value);if(value<=0)return toast('Informe um valor válido.');db.cash.push({id:Date.now(),date:today(),type:document.getElementById('ctype').value,value,method:document.getElementById('cmethod').value,desc:document.getElementById('cdesc').value});save();closeModal();render('caixa');toast('Lançamento registrado!')}
 
-render();
+// V30 FIX: o primeiro render ocorria antes da inicialização de v12Costs,
+// causando ReferenceError e deixando o Dashboard em branco.
+window.addEventListener('load',()=>render());
 
 
 function calculator(){
