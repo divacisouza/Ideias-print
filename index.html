@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V21</title>
+<title>Ideias Print — Gestão Online V28</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -284,6 +284,8 @@ html,body{max-width:100%;overflow-x:hidden}
 .sale-grand-total strong{font-size:22px}
 @media(max-width:600px){.sale-discount-row{align-items:flex-start;flex-direction:column;gap:7px}.sale-discount-control{width:100%;min-width:0}.sale-discount-control input{flex:1;width:auto}.sale-summary-box{padding:10px 12px}}
 </style>
+<style>/* V28 — Financeiro profissional */
+.cash-toolbar{display:grid;grid-template-columns:1fr 170px 170px auto;gap:10px;margin:14px 0}.cash-toolbar input,.cash-toolbar select{height:42px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px 11px;outline:none}.cash-toolbar input:focus,.cash-toolbar select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #00afe922}.cash-summary{margin-top:16px}.cash-summary .stat{min-height:112px}.cash-net-positive{color:#087746}.cash-net-negative{color:#b42318}.cash-row-cancelado{opacity:.62;background:#fff8f8}.cash-type-entry{color:#087746;font-weight:800}.cash-type-exit{color:#a5165e;font-weight:800}.cash-note{font-size:12px;color:var(--muted);margin-top:5px}@media(max-width:900px){.cash-toolbar{grid-template-columns:1fr 1fr}.cash-toolbar button{grid-column:1/-1}}@media(max-width:600px){.cash-toolbar{grid-template-columns:1fr}.cash-toolbar button{grid-column:auto}}</style>
 </head>
 <body>
 <div class="app">
@@ -401,7 +403,7 @@ const seedServices=[
 let db=JSON.parse(localStorage.getItem('graficaDB')||'null')||{services:seedServices,clients:[],quotes:[],orders:[],cash:[]};
 function save(){
  localStorage.setItem('graficaDB',JSON.stringify(db));
- try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V27',date:new Date().toISOString(),db}))}catch(e){}
+ try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V28',date:new Date().toISOString(),db}))}catch(e){}
  try{if(window.__v13CloudPersist) window.__v13CloudPersist(db)}catch(e){console.warn('Cloud save:',e)}
 
 }
@@ -916,13 +918,18 @@ function saveService(id){const obj={id:id||Date.now(),name:document.getElementBy
 
 function cash(){
  const isCanceledOrderEntry=x=>{const m=String(x.desc||'').match(/^Pedido #(\d+)\s*[—-]/);return !!(m&&db.orders.find(o=>Number(o.id)===Number(m[1])&&o.status==='Cancelado'));};
- const validCash=db.cash.filter(x=>!isCanceledOrderEntry(x));
- const canceledCash=db.cash.filter(isCanceledOrderEntry);
- const inSum=validCash.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value),0), outSum=validCash.filter(x=>x.type==='saida').reduce((a,x)=>a+Number(x.value),0), canceledSum=canceledCash.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value),0);
- document.getElementById('page').innerHTML=`<div class="grid stats"><div class="card stat"><div class="label">Entradas válidas</div><div class="value">${money(inSum)}</div></div><div class="card stat"><div class="label">Total de saídas</div><div class="value">${money(outSum)}</div></div><div class="card stat"><div class="label">Saldo atual</div><div class="value">${money(inSum-outSum)}</div></div><div class="card stat"><div class="label">Cancelamentos</div><div class="value">${money(canceledSum)}</div></div></div>
- <div class="section-head" style="margin-top:20px"><div><h2>Movimentações</h2><div class="sale-helper">Pedidos cancelados não entram no saldo. Eles permanecem visíveis para conferência.</div></div><button class="btn primary" onclick="newCash()">+ Lançamento</button></div>
- <div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Método</th><th>Valor</th></tr></thead><tbody>${db.cash.slice().reverse().map(x=>{const canceled=isCanceledOrderEntry(x);return `<tr style="${canceled?'opacity:.58':''}"><td>${x.date.split('-').reverse().join('/')}</td><td><span class="badge ${canceled?'b-pink':x.type==='entrada'?'b-green':'b-pink'}">${canceled?'cancelado':x.type}</span></td><td>${esc(x.desc)}${canceled?' <span class="badge b-pink">não contabilizado</span>':''}</td><td>${esc(x.method||'-')}</td><td>${money(x.value)}</td></tr>`}).join('')||'<tr><td colspan="5" class="empty">Nenhuma movimentação.</td></tr>'}</tbody></table></div>`;
+ const canceled=db.cash.filter(isCanceledOrderEntry),valid=db.cash.filter(x=>!isCanceledOrderEntry(x)),p=window.__cashFilters||{period:'all',type:'all',search:''};
+ let start='';if(p.period==='today')start=today();else if(p.period==='7'){const d=new Date();d.setDate(d.getDate()-6);start=d.toISOString().slice(0,10)}else if(p.period==='month')start=today().slice(0,8)+'01';
+ const matches=x=>{if(p.type!=='all'&&x.type!==p.type)return false;if(start&&x.date<start)return false;if(p.search){const q=p.search.toLowerCase();return (`${x.desc||''} ${x.method||''} ${x.date||''}`).toLowerCase().includes(q)}return true};
+ const rows=valid.filter(matches).slice().reverse(),inSum=valid.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value),0),outSum=valid.filter(x=>x.type==='saida').reduce((a,x)=>a+Number(x.value),0),balance=inSum-outSum,periodIn=valid.filter(x=>matches(x)&&x.type==='entrada').reduce((a,x)=>a+Number(x.value),0),periodOut=valid.filter(x=>matches(x)&&x.type==='saida').reduce((a,x)=>a+Number(x.value),0),canceledSum=canceled.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value),0);
+ document.getElementById('page').innerHTML=`<div class="grid stats cash-summary"><div class="card stat"><div class="label">Entradas válidas</div><div class="value">${money(inSum)}</div><div class="cash-note">No período: ${money(periodIn)}</div></div><div class="card stat"><div class="label">Total de saídas</div><div class="value">${money(outSum)}</div><div class="cash-note">No período: ${money(periodOut)}</div></div><div class="card stat"><div class="label">Saldo atual</div><div class="value ${balance>=0?'cash-net-positive':'cash-net-negative'}">${money(balance)}</div><div class="cash-note">Entradas válidas − saídas</div></div><div class="card stat"><div class="label">Cancelamentos</div><div class="value">${money(canceledSum)}</div><div class="cash-note">Não contabilizados no saldo</div></div></div>
+ <div class="cash-toolbar"><input id="cashSearch" placeholder="Buscar descrição, método ou data..." value="${esc(p.search)}" oninput="cashFilter()"><select id="cashPeriod" onchange="cashFilter()"><option value="all" ${p.period==='all'?'selected':''}>Todo o período</option><option value="today" ${p.period==='today'?'selected':''}>Hoje</option><option value="7" ${p.period==='7'?'selected':''}>Últimos 7 dias</option><option value="month" ${p.period==='month'?'selected':''}>Este mês</option></select><select id="cashType" onchange="cashFilter()"><option value="all" ${p.type==='all'?'selected':''}>Todos os tipos</option><option value="entrada" ${p.type==='entrada'?'selected':''}>Entradas</option><option value="saida" ${p.type==='saida'?'selected':''}>Saídas</option></select><button class="btn primary" onclick="newCash()">+ Lançamento</button></div>
+ <div class="section-head"><div><h2>Movimentações</h2><div class="cash-note">${rows.length} lançamento(s) encontrado(s)</div></div></div>
+ <div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Método</th><th>Valor</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x.date.split('-').reverse().join('/')}</td><td><span class="badge ${x.type==='entrada'?'b-green':'b-pink'}">${x.type}</span></td><td>${esc(x.desc)}</td><td>${esc(x.method||'-')}</td><td class="${x.type==='entrada'?'cash-type-entry':'cash-type-exit'}">${x.type==='entrada'?'+':'−'} ${money(x.value)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Nenhuma movimentação encontrada.</td></tr>'}</tbody></table></div>
+ ${canceled.length?`<div class="section" style="margin-top:16px"><div class="section-head"><div><h2>Cancelamentos não contabilizados</h2><div class="cash-note">Histórico mantido para conferência.</div></div></div><div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Descrição</th><th>Método</th><th>Valor</th></tr></thead><tbody>${canceled.slice().reverse().map(x=>`<tr class="cash-row-cancelado"><td>${x.date.split('-').reverse().join('/')}</td><td>${esc(x.desc)}</td><td>${esc(x.method||'-')}</td><td>${money(x.value)}</td></tr>`).join('')}</tbody></table></div></div>`:''}`;
 }
+function cashFilter(){window.__cashFilters={period:document.getElementById('cashPeriod')?.value||'all',type:document.getElementById('cashType')?.value||'all',search:document.getElementById('cashSearch')?.value||''};cash();}
+
 function newCash(){openModal('Novo lançamento',`<div class="formgrid"><div class="field"><label>Tipo</label><select id="ctype"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div><div class="field"><label>Valor</label><input id="cvalue" type="number" step="0.01"></div><div class="field"><label>Método</label><select id="cmethod"><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Outro</option></select></div><div class="field"><label>Descrição</label><input id="cdesc"></div></div><div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveCash()">Salvar</button></div>`)}
 function saveCash(){const value=Number(document.getElementById('cvalue').value);if(value<=0)return toast('Informe um valor válido.');db.cash.push({id:Date.now(),date:today(),type:document.getElementById('ctype').value,value,method:document.getElementById('cmethod').value,desc:document.getElementById('cdesc').value});save();closeModal();render('caixa');toast('Lançamento registrado!')}
 
@@ -1298,7 +1305,7 @@ setTimeout(v4Render,500);
         if(remote && typeof remote==='object' && (remote.services||remote.clients||remote.quotes||remote.orders||remote.cash)){
           db=remote;
           localStorage.setItem('graficaDB',JSON.stringify(db));
-          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V27',date:new Date().toISOString(),db}))}catch(e){}
+          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V28',date:new Date().toISOString(),db}))}catch(e){}
           render();
           setMsg('Dados carregados da nuvem.',true);
           return true;
