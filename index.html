@@ -254,7 +254,7 @@ html,body{max-width:100%;overflow-x:hidden}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* V23 — acabamento profissional do formulário de venda */
+/* V24 — acabamento profissional do formulário de venda */
 .sale-items-panel{border:1px solid var(--line);border-radius:14px;background:#fafbfc;padding:14px;margin-top:4px}
 .sale-items-head{margin-bottom:10px}.sale-items-head h2{margin:0 0 3px}.sale-helper{font-size:12px;color:var(--muted)}
 .sale-columns{display:grid;grid-template-columns:minmax(240px,2.5fr) .7fr .9fr .9fr 38px;gap:8px;padding:0 48px 6px 0;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
@@ -267,6 +267,20 @@ html,body{max-width:100%;overflow-x:hidden}
 .sale-items-panel .remove{border:0;cursor:pointer;font-size:22px;font-weight:700}
 .sale-total-box{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:14px 16px;border-radius:12px;background:#111827;color:#fff}.sale-total-box strong{font-size:24px}.sale-total-label{display:block;font-size:13px;font-weight:800}.sale-total-box small{display:block;color:#cbd5e1;font-size:11px;margin-top:2px}
 @media(max-width:700px){.modalbox{padding:15px}.sale-columns{display:none}.sale-items-panel{padding:10px}.sale-items-panel .itemrow{grid-template-columns:1fr 1fr!important;gap:9px}.sale-items-panel .itemrow .field:first-child{grid-column:1/-1}.sale-items-panel .itemrow .remove{position:absolute;right:10px;top:10px;width:36px}.sale-items-panel .itemrow{position:relative;padding-top:12px;padding-right:50px}.sale-items-panel .itemrow .item-total-wrap{grid-column:1/-1}.sale-total-box{padding:13px}.sale-total-box strong{font-size:21px}}
+</style>
+<style id="v24-sale-professional">
+/* V24 — formulário de venda profissional */
+.sale-summary-box{margin-top:12px;border:1px solid var(--border);border-radius:14px;background:var(--card);padding:12px 14px}
+.sale-summary-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:7px 0;color:var(--muted)}
+.sale-summary-row strong{color:var(--text)}
+.sale-discount-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:9px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border)}
+.sale-discount-row label{font-weight:700;color:var(--text)}
+.sale-discount-control{display:flex;align-items:center;gap:6px;min-width:180px}
+.sale-discount-control input{width:120px;text-align:right}
+.sale-discount-control select{width:68px}
+.sale-grand-total{padding-top:12px;font-size:16px}
+.sale-grand-total strong{font-size:22px}
+@media(max-width:600px){.sale-discount-row{align-items:flex-start;flex-direction:column;gap:7px}.sale-discount-control{width:100%;min-width:0}.sale-discount-control input{flex:1;width:auto}.sale-summary-box{padding:10px 12px}}
 </style>
 </head>
 <body>
@@ -385,7 +399,7 @@ const seedServices=[
 let db=JSON.parse(localStorage.getItem('graficaDB')||'null')||{services:seedServices,clients:[],quotes:[],orders:[],cash:[]};
 function save(){
  localStorage.setItem('graficaDB',JSON.stringify(db));
- try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V23',date:new Date().toISOString(),db}))}catch(e){}
+ try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V24',date:new Date().toISOString(),db}))}catch(e){}
  try{if(window.__v13CloudPersist) window.__v13CloudPersist(db)}catch(e){console.warn('Cloud save:',e)}
 
 }
@@ -405,7 +419,7 @@ function render(page='dashboard'){
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>render(b.dataset.page));
 
 function dashboard(){
- const d=today(), orders=db.orders.filter(o=>o.date===d), received=db.cash.filter(x=>{const m=String(x.desc||'').match(/^Pedido #(\d+)/);const order=m?db.orders.find(o=>Number(o.id)===Number(m[1])):null;return x.date===d&&x.type==='entrada'&&!(order&&order.status==='Cancelado');}).reduce((a,x)=>a+Number(x.value),0);
+ const d=today(), orders=db.orders.filter(o=>o.date===d), received=db.cash.filter(x=>{if(x.date!==d||x.type!=='entrada')return false;const m=String(x.desc||'').match(/^Pedido #(\d+)/);return !(m&&db.orders.find(o=>Number(o.id)===Number(m[1])&&o.status==='Cancelado'));}).reduce((a,x)=>a+Number(x.value),0);
  const open=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status)).length;
  const ready=db.orders.filter(o=>o.status==='Pronto').length;
  const recent=db.orders.slice().sort((a,b)=>b.id-a.id).slice(0,8);
@@ -591,51 +605,86 @@ function newOrder(){
    </div>
   </div>
   <div class="field"><label>Forma de pagamento</label><select id="qpay"><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>A pagar</option></select></div>
-  <div class="field"><label>Observação</label><input id="orderObs" placeholder="Prazo, retirada, detalhes..."></div>
+  <div class="field"><label>Status do pedido</label><select id="qstatus"><option selected>Em produção</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select></div>
+  <div class="field full"><label>Observação</label><input id="orderObs" placeholder="Prazo, retirada, detalhes..."></div>
  </div>
  <div class="sale-items-panel">
   <div class="section-head sale-items-head"><div><h2>Itens da venda</h2><div class="sale-helper">Adicione um ou mais serviços e informe a quantidade.</div></div><button class="btn secondary" onclick="addItem()">+ Adicionar item</button></div>
   <div class="sale-columns"><span>Serviço</span><span>Quantidade</span><span>Valor unit.</span><span>Subtotal</span></div>
   <div id="items"></div>
  </div>
- <div class="sale-total-box"><div><span class="sale-total-label">Total da venda</span><small>Confira antes de registrar</small></div><strong id="qtotal">R$ 0,00</strong></div>
+ <div class="sale-summary-box">
+   <div class="sale-summary-row"><span>Subtotal</span><strong id="qsubtotal">R$ 0,00</strong></div>
+   <div class="sale-discount-row">
+     <label for="qdiscount">Desconto</label>
+     <div class="sale-discount-control"><input id="qdiscount" type="number" min="0" step="0.01" value="0" placeholder="0,00" oninput="updateOrderTotal()"><select id="qdiscountType" onchange="updateOrderTotal()"><option value="value">R$</option><option value="percent">%</option></select></div>
+   </div>
+   <div class="sale-summary-row sale-grand-total"><span>Total da venda</span><strong id="qtotal">R$ 0,00</strong></div>
+ </div>
  <div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveOrder()">Registrar venda</button></div>`);
  addItem();
+}
+
+function getOrderDiscount(subtotal, value, type){
+ const v=Math.max(0,Number(value||0));
+ return Math.min(subtotal, type==='percent'?subtotal*(Math.min(v,100)/100):v);
+}
+function updateOrderTotal(){
+ const rows=[...document.querySelectorAll('#items .itemrow')];
+ let subtotal=rows.reduce((sum,r)=>sum+(Number(r.querySelector('.item-qty')?.value||0)*Number(r.querySelector('.item-price')?.value||0)),0);
+ const discount=getOrderDiscount(subtotal,document.getElementById('qdiscount')?.value,document.getElementById('qdiscountType')?.value||'value');
+ const st=document.getElementById('qsubtotal'),tt=document.getElementById('qtotal');
+ if(st)st.textContent=money(subtotal); if(tt)tt.textContent=money(subtotal-discount);
 }
 
 function saveOrder(){
  const rows=[...document.querySelectorAll('#items .itemrow')];
  if(!rows.length)return toast('Adicione pelo menos um item.');
- const items=rows.map(r=>{
-   const s=db.services.find(x=>x.id==r.querySelector('.item-service').value);
+ const items=[];
+ for(const r of rows){
+   const sid=r.querySelector('.item-service').value; if(!sid)continue;
+   const s=db.services.find(x=>x.id==sid); if(!s)continue;
    const qty=Math.max(1,Number(r.querySelector('.item-qty').value||1));
    const price=Number(r.querySelector('.item-price').value||0);
-   return {serviceId:s.id,name:s.name,qty,price,total:qty*price};
- });
- const total=items.reduce((a,i)=>a+i.total,0);
+   items.push({serviceId:s.id,name:s.name,qty,price,total:qty*price});
+ }
+ if(!items.length)return toast('Selecione pelo menos um serviço.');
+ const subtotal=items.reduce((a,i)=>a+i.total,0);
+ const discountType=document.getElementById('qdiscountType')?.value||'value';
+ const discountInput=Math.max(0,Number(document.getElementById('qdiscount')?.value||0));
+ const discount=getOrderDiscount(subtotal,discountInput,discountType);
+ const total=Math.max(0,subtotal-discount);
  const cid=document.getElementById('qclient').value;
  const co=db.clients.find(c=>String(c.id)===String(cid));
  const oid=(db.orders.at(-1)?.id||0)+1;
  const pay=document.getElementById('qpay').value;
+ const status=document.getElementById('qstatus').value;
  db.orders.push({
-   id:oid, client:co?.name||'Balcão', clientId:cid||'', total, summary:items.map(i=>`${i.qty}x ${i.name}`).join(', '),
-   status:'Em produção', date:today(), pay, items, obs:document.getElementById('orderObs')?.value||''
+   id:oid, client:co?.name||'Balcão', clientId:cid||'', subtotal, discount, discountType, discountInput, total, summary:items.map(i=>`${i.qty}x ${i.name}`).join(', '),
+   status, date:today(), pay, items, obs:document.getElementById('orderObs')?.value||''
  });
- if(pay!=='A pagar')db.cash.push({id:Date.now(),date:today(),type:'entrada',value:total,desc:`Pedido #${oid} — ${co?.name||'Balcão'}`,method:pay});
+ if(pay!=='A pagar' && status!=='Cancelado')db.cash.push({id:Date.now(),date:today(),type:'entrada',value:total,desc:`Pedido #${oid} — ${co?.name||'Balcão'}`,method:pay});
  save();closeModal();render('pedidos');toast(`Venda #${oid} registrada!`);
 }
 
 function editOrder(id){
  const o=db.orders.find(x=>Number(x.id)===Number(id)); if(!o)return;
  const items=Array.isArray(o.items)&&o.items.length?o.items:[{serviceId:'',name:'',qty:1,price:0,total:0}];
+ const subtotal=Number(o.subtotal||items.reduce((a,i)=>a+Number(i.qty||0)*Number(i.price||0),0));
+ const discountType=o.discountType||'value';
+ const discountInput=Number(o.discountInput!=null?o.discountInput:(o.discount||0));
  openModal('Editar venda #'+o.id,`<div class="formgrid">
   <div class="field full"><label>Cliente</label><div style="display:flex;gap:8px;align-items:center"><select id="eoClient" class="client-select" style="flex:1">${clientOptions(o.clientId||'')}</select><button type="button" class="btn secondary" onclick="quickNewClient()">+ Novo cliente</button></div></div>
   <div class="field"><label>Pagamento</label><select id="eoPay"><option ${o.pay==='PIX'?'selected':''}>PIX</option><option ${o.pay==='Dinheiro'?'selected':''}>Dinheiro</option><option ${o.pay==='Cartão'?'selected':''}>Cartão</option><option ${o.pay==='A pagar'?'selected':''}>A pagar</option></select></div>
-  <div class="field"><label>Status</label><select id="eoStatus"><option ${o.status==='Em produção'?'selected':''}>Em produção</option><option ${o.status==='Pronto'?'selected':''}>Pronto</option><option ${o.status==='Entregue'?'selected':''}>Entregue</option><option ${o.status==='Cancelado'?'selected':''}>Cancelado</option></select></div>
+  <div class="field"><label>Status do pedido</label><select id="eoStatus"><option ${o.status==='Em produção'?'selected':''}>Em produção</option><option ${o.status==='Pronto'?'selected':''}>Pronto</option><option ${o.status==='Entregue'?'selected':''}>Entregue</option><option ${o.status==='Cancelado'?'selected':''}>Cancelado</option></select></div>
   <div class="field full"><label>Observação</label><textarea id="eoObs" rows="3">${esc(o.obs||'')}</textarea></div>
  </div>
  <div class="sale-items-panel"><div class="section-head sale-items-head"><div><h2>Itens da venda</h2><div class="sale-helper">Edite quantidade, preço ou adicione novos serviços.</div></div><button type="button" class="btn secondary" onclick="addEditOrderItem()">+ Adicionar item</button></div><div class="sale-columns"><span>Serviço</span><span>Quantidade</span><span>Valor unit.</span><span>Subtotal</span></div><div id="editOrderItems"></div></div>
- <div class="sale-total-box"><div><span class="sale-total-label">Total da venda</span><small>Atualizado automaticamente</small></div><strong id="eoTotal">${money(o.total||0)}</strong></div>
+ <div class="sale-summary-box">
+   <div class="sale-summary-row"><span>Subtotal</span><strong id="eosubtotal">${money(subtotal)}</strong></div>
+   <div class="sale-discount-row"><label for="eodiscount">Desconto</label><div class="sale-discount-control"><input id="eodiscount" type="number" min="0" step="0.01" value="${discountInput}" oninput="updateEditOrderTotal()"><select id="eodiscountType" onchange="updateEditOrderTotal()"><option value="value" ${discountType==='value'?'selected':''}>R$</option><option value="percent" ${discountType==='percent'?'selected':''}>%</option></select></div></div>
+   <div class="sale-summary-row sale-grand-total"><span>Total da venda</span><strong id="eoTotal">${money(o.total||subtotal-Number(o.discount||0))}</strong></div>
+ </div>
  <div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveEditedOrder(${o.id})">Salvar alterações</button></div>`);
  window.__editOrderItems=items.map(i=>({...i}));
  window.__renderEditOrderItems();
@@ -653,8 +702,7 @@ window.__renderEditOrderItems=function(){
    <div class="field"><label>Total</label><input class="item-total" readonly value="${money(Number(it.qty||0)*Number(it.price||0))}"></div>
    <button type="button" class="remove" onclick="removeEditOrderItem(${idx})">×</button>
  </div>`).join('');
- const total=arr.reduce((a,it)=>a+Number(it.qty||0)*Number(it.price||0),0);
- const t=document.getElementById('eoTotal'); if(t)t.textContent=money(total);
+ updateEditOrderTotal();
 };
 window.updateEditOrderItem=function(idx,type,value){
  const arr=window.__editOrderItems||[]; if(!arr[idx])return;
@@ -667,6 +715,13 @@ window.updateEditOrderItem=function(idx,type,value){
  arr[idx].total=Number(arr[idx].qty||0)*Number(arr[idx].price||0);
  window.__renderEditOrderItems();
 };
+function updateEditOrderTotal(){
+ const arr=window.__editOrderItems||[];
+ const subtotal=arr.reduce((a,it)=>a+Number(it.qty||0)*Number(it.price||0),0);
+ const discount=getOrderDiscount(subtotal,document.getElementById('eodiscount')?.value,document.getElementById('eodiscountType')?.value||'value');
+ const st=document.getElementById('eosubtotal'),tt=document.getElementById('eoTotal');
+ if(st)st.textContent=money(subtotal); if(tt)tt.textContent=money(subtotal-discount);
+}
 window.addEditOrderItem=function(){
  window.__editOrderItems=window.__editOrderItems||[];
  window.__editOrderItems.push({serviceId:'',name:'',qty:1,price:0,total:0});
@@ -682,28 +737,26 @@ function saveEditedOrder(id){
  const arr=(window.__editOrderItems||[]).filter(it=>it.serviceId);
  if(!arr.length)return toast('Adicione pelo menos um item.');
  const items=arr.map(it=>{const svc=db.services.find(x=>String(x.id)===String(it.serviceId));const qty=Math.max(1,Number(it.qty||1));const price=Math.max(0,Number(it.price||0));return{serviceId:svc.id,name:svc.name,qty,price,total:qty*price};});
- const oldPaid=o.pay&&o.pay!=='A pagar';
- const oldStatus=o.status;
+ const oldPaid=o.pay&&o.pay!=='A pagar'&&o.status!=='Cancelado';
  const newPay=document.getElementById('eoPay').value;
- const oldTotal=Number(o.total||0), newTotal=items.reduce((a,i)=>a+i.total,0);
+ const newStatus=document.getElementById('eoStatus').value;
+ const oldTotal=Number(o.total||0), subtotal=items.reduce((a,i)=>a+i.total,0);
+ const discountType=document.getElementById('eodiscountType')?.value||'value';
+ const discountInput=Math.max(0,Number(document.getElementById('eodiscount')?.value||0));
+ const discount=getOrderDiscount(subtotal,discountInput,discountType);
+ const newTotal=Math.max(0,subtotal-discount);
  o.clientId=document.getElementById('eoClient').value||'';
  const co=db.clients.find(c=>String(c.id)===String(o.clientId));
- o.client=co?.name||'Balcão';
- o.pay=newPay;
- o.status=document.getElementById('eoStatus').value;
- o.obs=document.getElementById('eoObs').value.trim();
- o.items=items;
- o.total=newTotal;
- o.summary=items.map(i=>`${i.qty}x ${i.name}`).join(', ');
- if(o.status==='Cancelado'){
+ o.client=co?.name||'Balcão'; o.pay=newPay; o.status=newStatus; o.obs=document.getElementById('eoObs').value.trim();
+ o.items=items; o.subtotal=subtotal; o.discount=discount; o.discountType=discountType; o.discountInput=discountInput; o.total=newTotal; o.summary=items.map(i=>`${i.qty}x ${i.name}`).join(', ');
+ const hasCash=db.cash.some(x=>x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`));
+ if(newStatus==='Cancelado' || newPay==='A pagar'){
    db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`)));
  } else if(oldPaid){
    const ce=db.cash.find(x=>String(x.desc||'').startsWith(`Pedido #${id} —`) && x.type==='entrada');
-   if(newPay==='A pagar'){
-     db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`)));
-   } else if(ce){ce.value=newTotal;ce.method=newPay;ce.desc=`Pedido #${id} — ${o.client}`;}
+   if(ce){ce.value=newTotal;ce.method=newPay;ce.desc=`Pedido #${id} — ${o.client}`;}
    else db.cash.push({id:Date.now(),date:today(),type:'entrada',value:newTotal,desc:`Pedido #${id} — ${o.client}`,method:newPay});
- } else if(newPay!=='A pagar'){
+ } else if(newStatus!=='Cancelado' && newPay!=='A pagar'){
    db.cash.push({id:Date.now(),date:today(),type:'entrada',value:newTotal,desc:`Pedido #${id} — ${o.client}`,method:newPay});
  }
  save();closeModal();render('pedidos');toast(`Venda #${id} atualizada com ${items.length} item(ns)!`);
@@ -717,7 +770,7 @@ function deleteOrder(id){
  save();render('pedidos');toast(`Venda #${id} excluída.`);
 }
 
-function changeStatus(){const o=db.orders.find(x=>x.id==document.getElementById('statusOrder').value);o.status=document.getElementById('newStatus').value;save();render('pedidos');toast('Status atualizado!')}
+function changeStatus(){const o=db.orders.find(x=>x.id==document.getElementById('statusOrder').value);if(!o)return;const ns=document.getElementById('newStatus').value;o.status=ns;if(ns==='Cancelado'){db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${o.id} —`)));}else if(o.pay&&o.pay!=='A pagar'&&!db.cash.some(x=>x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${o.id} —`))){db.cash.push({id:Date.now(),date:today(),type:'entrada',value:Number(o.total||0),desc:`Pedido #${o.id} — ${o.client||'Balcão'}`,method:o.pay});}save();render('pedidos');toast('Status atualizado!')}
 
 function clients(){
  document.getElementById('page').innerHTML=`<div class="section-head"><h2>Clientes</h2><button class="btn primary" onclick="newClient()">+ Cliente</button></div><div class="card table-wrap"><table class="table"><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th></th></tr></thead><tbody>${db.clients.length?db.clients.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.email)}</td><td><button class="btn secondary" onclick="editClient(${c.id})">Editar</button> <button class="btn secondary" onclick="deleteClient(${c.id})">Excluir</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhum cliente cadastrado.</td></tr>'}</tbody></table></div>`;
@@ -1142,7 +1195,7 @@ setTimeout(v4Render,500);
         if(remote && typeof remote==='object' && (remote.services||remote.clients||remote.quotes||remote.orders||remote.cash)){
           db=remote;
           localStorage.setItem('graficaDB',JSON.stringify(db));
-          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V23',date:new Date().toISOString(),db}))}catch(e){}
+          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V24',date:new Date().toISOString(),db}))}catch(e){}
           render();
           setMsg('Dados carregados da nuvem.',true);
           return true;
