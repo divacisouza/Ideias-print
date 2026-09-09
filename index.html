@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V18</title>
+<title>Ideias Print — Gestão Online V19</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -178,13 +178,45 @@ select.v4Svc:invalid, #eoService:invalid, #orderService:invalid{
 
 
 <style>
-/* V11 — Quantidade e valores só aparecem depois da escolha do serviço */
-.itemrow .item-extra-fields{display:none;grid-template-columns:1fr 1fr;gap:10px}
-.itemrow.has-service .item-extra-fields{display:grid}
-.itemrow .item-empty-note{display:block;color:var(--muted);font-size:12px;padding:10px 0}
-.itemrow.has-service .item-empty-note{display:none}
-@media(max-width:650px){
-  .itemrow .item-extra-fields{grid-template-columns:1fr 1fr}
+/* V19 — Itens da venda: quantidade sempre visível e alinhada após escolher o serviço */
+#items .itemrow{
+  display:grid;
+  grid-template-columns:minmax(190px,1.7fr) 105px 125px 125px 42px;
+  gap:8px;
+  align-items:end;
+}
+#items .itemrow .item-empty-note{
+  grid-column:2 / 5;
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  padding:10px 0;
+}
+#items .itemrow.has-service .item-empty-note{display:none}
+#items .itemrow .item-qty-field,
+#items .itemrow .item-price-field{display:none}
+#items .itemrow.has-service .item-qty-field,
+#items .itemrow.has-service .item-price-field{display:block}
+#items .itemrow .item-qty,
+#items .itemrow .item-price,
+#items .itemrow .item-total{width:100%;min-width:0}
+@media(max-width:760px){
+  #items .itemrow{grid-template-columns:minmax(0,1fr) 100px 110px 42px}
+  #items .itemrow .item-service{min-width:0;width:100%}
+  #items .itemrow .item-empty-note{grid-column:2 / 4}
+  #items .itemrow .item-qty-field{grid-column:2}
+  #items .itemrow .item-price-field{grid-column:3}
+  #items .itemrow .item-total-wrap{grid-column:1 / 4}
+  #items .itemrow .remove{grid-column:4;grid-row:2}
+}
+@media(max-width:500px){
+  #items .itemrow{grid-template-columns:1fr 1fr 42px}
+  #items .itemrow .item-service{grid-column:1 / 3}
+  #items .itemrow .item-empty-note{grid-column:1 / 3}
+  #items .itemrow .item-qty-field{grid-column:1}
+  #items .itemrow .item-price-field{grid-column:2}
+  #items .itemrow .item-total-wrap{grid-column:1 / 3}
+  #items .itemrow .remove{grid-column:3;grid-row:3}
 }
 </style>
 
@@ -338,7 +370,7 @@ const seedServices=[
 let db=JSON.parse(localStorage.getItem('graficaDB')||'null')||{services:seedServices,clients:[],quotes:[],orders:[],cash:[]};
 function save(){
  localStorage.setItem('graficaDB',JSON.stringify(db));
- try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V18',date:new Date().toISOString(),db}))}catch(e){}
+ try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V19',date:new Date().toISOString(),db}))}catch(e){}
  try{if(window.__v13CloudPersist) window.__v13CloudPersist(db)}catch(e){console.warn('Cloud save:',e)}
 
 }
@@ -440,10 +472,8 @@ function addItem(data=null){
  const row=document.createElement('div'); row.className='itemrow'+(hasService?' has-service':'');
  row.innerHTML=`<div class="field"><label>Serviço</label><select class="item-service" onchange="serviceSelected(this)">${opts}</select></div>
   <div class="item-empty-note">Escolha um serviço para informar quantidade e valor.</div>
-  <div class="item-extra-fields">
-   <div class="field"><label>Quantidade</label><input class="item-qty" type="number" min="1" value="${hasService?data.qty:''}" placeholder="Ex.: 10" oninput="calcQuote()"></div>
-   <div class="field"><label>Valor unitário</label><input class="item-price" type="number" step="0.01" value="${hasService?data.price:''}" placeholder="R$ 0,00" oninput="calcQuote()"></div>
-  </div>
+  <div class="field item-qty-field" style="${hasService?'':'display:none'}"><label>Quantidade</label><input class="item-qty" type="number" min="1" value="${hasService?data.qty:''}" placeholder="Ex.: 10" oninput="calcQuote()"></div>
+  <div class="field item-price-field" style="${hasService?'':'display:none'}"><label>Valor unitário</label><input class="item-price" type="number" step="0.01" value="${hasService?data.price:''}" placeholder="R$ 0,00" oninput="calcQuote()"></div>
   <div class="field item-total-wrap" style="${hasService?'':'display:none'}"><label>Total</label><input class="item-total" readonly></div>
   <button class="remove" onclick="this.parentElement.remove();calcQuote()">×</button>`;
  wrap.appendChild(row);
@@ -1027,7 +1057,7 @@ setTimeout(v4Render,500);
   const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   window.__ipSupabase=sb;
   let cloudBusy=false, saveTimer=null;
-  const keyFor=(uid)=>`v18_app_state_${uid}`;
+  const keyFor=(uid)=>`v19_app_state_${uid}`;
   const msgEl=()=>document.getElementById('v13AuthMsg');
   function setMsg(t,ok=false){const e=msgEl();if(e){e.textContent=t;e.style.color=ok?'#087746':'#b42318'}}
   function showApp(user){
@@ -1048,7 +1078,7 @@ setTimeout(v4Render,500);
         if(remote && typeof remote==='object' && (remote.services||remote.clients||remote.quotes||remote.orders||remote.cash)){
           db=remote;
           localStorage.setItem('graficaDB',JSON.stringify(db));
-          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V18',date:new Date().toISOString(),db}))}catch(e){}
+          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V19',date:new Date().toISOString(),db}))}catch(e){}
           render();
           setMsg('Dados carregados da nuvem.',true);
           return true;
