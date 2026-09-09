@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V14</title>
+<title>Ideias Print — Gestão Online V17</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -338,7 +338,7 @@ const seedServices=[
 let db=JSON.parse(localStorage.getItem('graficaDB')||'null')||{services:seedServices,clients:[],quotes:[],orders:[],cash:[]};
 function save(){
  localStorage.setItem('graficaDB',JSON.stringify(db));
- try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V12',date:new Date().toISOString(),db}))}catch(e){}
+ try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V17',date:new Date().toISOString(),db}))}catch(e){}
  try{if(window.__v13CloudPersist) window.__v13CloudPersist(db)}catch(e){console.warn('Cloud save:',e)}
 
 }
@@ -1000,7 +1000,7 @@ setTimeout(v4Render,500);
 <div id="v13AuthGate">
   <div class="v13-auth-card">
     <div class="v13-brandmark"><img id="v13AuthLogo" alt="Ideias Print - Logo 1"></div>
-    <p class="v13-auth-sub">Sistema de gestão online • V16</p>
+    <p class="v13-auth-sub">Sistema de gestão online • V17</p>
     <label for="v13Email">E-mail</label>
     <input id="v13Email" type="email" autocomplete="email" placeholder="seu@email.com">
     <label for="v13Password">Senha</label>
@@ -1013,11 +1013,152 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V16 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V17 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
 </div>
 
+
+<script id="v17-cloud-bridge">
+(function(){
+  const SUPABASE_URL='https://buhbtwmrqvvywmpfqhds.supabase.co';
+  const SUPABASE_KEY='sb_publishable_Q3uqtGeA6uXfcjwbaa12GA__slg19WR';
+  const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  window.__ipSupabase=sb;
+  let cloudBusy=false, saveTimer=null;
+  const keyFor=(uid)=>`v17_app_state_${uid}`;
+  const msgEl=()=>document.getElementById('v13AuthMsg');
+  function setMsg(t,ok=false){const e=msgEl();if(e){e.textContent=t;e.style.color=ok?'#087746':'#b42318'}}
+  function showApp(user){
+    document.getElementById('v13AuthGate')?.classList.add('hidden');
+    const bar=document.getElementById('v13Userbar'); if(bar)bar.style.display='flex';
+    const em=document.getElementById('v13UserEmail'); if(em)em.textContent=user?.email||'';
+  }
+  function showLogin(){
+    document.getElementById('v13AuthGate')?.classList.remove('hidden');
+    const bar=document.getElementById('v13Userbar'); if(bar)bar.style.display='none';
+  }
+  async function loadState(user){
+    try{
+      const {data,error}=await sb.from('settings').select('value').eq('key',keyFor(user.id)).maybeSingle();
+      if(error) throw error;
+      if(data?.value){
+        const remote=data.value;
+        if(remote && typeof remote==='object' && (remote.services||remote.clients||remote.quotes||remote.orders||remote.cash)){
+          db=remote;
+          localStorage.setItem('graficaDB',JSON.stringify(db));
+          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V17',date:new Date().toISOString(),db}))}catch(e){}
+          render();
+          setMsg('Dados carregados da nuvem.',true);
+          return true;
+        }
+      }
+      await persistNow(db,user);
+      render();
+      setMsg('Sistema pronto. Seus dados locais foram enviados para a nuvem.',true);
+      return false;
+    }catch(e){
+      console.error(e); setMsg('Não foi possível carregar a nuvem. O sistema continua no navegador.'); return false;
+    }
+  }
+  async function syncCustomers(user){
+    db.__cloudMaps=db.__cloudMaps||{customers:{},products:{},quotes:{},orders:{}};
+    const {data:existing}=await sb.from('customers').select('id,name,phone,email');
+    const byKey=new Map((existing||[]).map(x=>[(String(x.name||'').trim().toLowerCase()+'|'+String(x.phone||'').trim()),x]));
+    for(const c of (db.clients||[])){
+      const k=(String(c.name||'').trim().toLowerCase()+'|'+String(c.phone||'').trim());
+      let id=db.__cloudMaps.customers[c.id];
+      const payload={name:c.name,phone:c.phone||null,email:c.email||null,notes:c.notes||null};
+      if(id){const r=await sb.from('customers').update(payload).eq('id',id).select('id').maybeSingle(); if(r.error) id=null;}
+      if(!id){const hit=byKey.get(k); if(hit) id=hit.id; else {const r=await sb.from('customers').insert(payload).select('id').single(); if(r.error) throw r.error; id=r.data.id;}}
+      db.__cloudMaps.customers[c.id]=id;
+    }
+  }
+  async function syncProducts(){
+    db.__cloudMaps=db.__cloudMaps||{customers:{},products:{},quotes:{},orders:{}};
+    const {data:existing}=await sb.from('products').select('id,name');
+    const byName=new Map((existing||[]).map(x=>[String(x.name).trim().toLowerCase(),x]));
+    for(const s of (db.services||[])){
+      let id=db.__cloudMaps.products[s.id];
+      const hit=byName.get(String(s.name||'').trim().toLowerCase());
+      if(hit) id=hit.id;
+      if(!id){const r=await sb.from('products').insert({name:s.name,category:'Serviço',unit:s.unit||'unidade',description:`Custo: ${Number(s.cost||0).toFixed(2)} | Preço: ${Number(s.price||0).toFixed(2)}`,active:true}).select('id').single(); if(r.error) throw r.error; id=r.data.id;}
+      db.__cloudMaps.products[s.id]=id;
+    }
+  }
+  async function syncQuotes(){
+    db.__cloudMaps=db.__cloudMaps||{customers:{},products:{},quotes:{},orders:{}};
+    for(const q of (db.quotes||[])){
+      let id=db.__cloudMaps.quotes[q.id];
+      const customer_id=db.__cloudMaps.customers[q.clientId]||null;
+      const payload={quote_number:Number(q.id),customer_id,status:'aprovado'===String(q.status).toLowerCase()?'aprovado':'enviado',subtotal:Number(q.total||0),discount:0,total:Number(q.total||0),estimated_cost:0,estimated_profit:Number(q.total||0),notes:q.pay?`Pagamento: ${q.pay}`:null,valid_until:null};
+      if(id){const r=await sb.from('quotes').update(payload).eq('id',id).select('id').maybeSingle(); if(r.error) id=null;}
+      if(!id){const found=await sb.from('quotes').select('id').eq('quote_number',Number(q.id)).maybeSingle(); if(found.data?.id) id=found.data.id; else {const r=await sb.from('quotes').insert(payload).select('id').single(); if(r.error) throw r.error; id=r.data.id;}}
+      db.__cloudMaps.quotes[q.id]=id;
+      await sb.from('quote_items').delete().eq('quote_id',id);
+      for(const it of (q.items||[])){
+        await sb.from('quote_items').insert({quote_id:id,product_id:db.__cloudMaps.products[it.serviceId]||null,description:it.name,quantity:Number(it.qty||1),unit_cost:0,unit_price:Number(it.price||0),total_price:Number(it.total||0),total_cost:0,finishes:[],notes:null});
+      }
+    }
+  }
+  async function syncOrders(){
+    db.__cloudMaps=db.__cloudMaps||{customers:{},products:{},quotes:{},orders:{}};
+    for(const o of (db.orders||[])){
+      let id=db.__cloudMaps.orders[o.id];
+      const customer_id=db.__cloudMaps.customers[o.clientId]||null;
+      const statusMap={'Em produção':'em_producao','Pronto':'pronto','Entregue':'entregue','Cancelado':'cancelado'};
+      const payload={order_number:Number(o.id),quote_id:null,customer_id,status:statusMap[o.status]||'aberto',total:Number(o.total||0),estimated_cost:Number(o.cost||0),estimated_profit:Number((o.total||0)-(o.cost||0)),notes:o.obs||null};
+      if(id){const r=await sb.from('orders').update(payload).eq('id',id).select('id').maybeSingle(); if(r.error) id=null;}
+      if(!id){const found=await sb.from('orders').select('id').eq('order_number',Number(o.id)).maybeSingle(); if(found.data?.id) id=found.data.id; else {const r=await sb.from('orders').insert(payload).select('id').single(); if(r.error) throw r.error; id=r.data.id;}}
+      db.__cloudMaps.orders[o.id]=id;
+      await sb.from('order_items').delete().eq('order_id',id);
+      for(const it of (o.items||[])){
+        await sb.from('order_items').insert({order_id:id,product_id:db.__cloudMaps.products[it.serviceId]||null,description:it.name,quantity:Number(it.qty||1),unit_cost:0,unit_price:Number(it.price||0),total_price:Number(it.total||0),total_cost:0,finishes:[],notes:null});
+      }
+    }
+  }
+  async function persistNow(localDb,user){
+    if(!user)return;
+    db.__cloudMaps=db.__cloudMaps||{customers:{},products:{},quotes:{},orders:{}};
+    const state=JSON.parse(JSON.stringify(localDb));
+    const r=await sb.from('settings').upsert({key:keyFor(user.id),value:state,updated_at:new Date().toISOString()},{onConflict:'key'});
+    if(r.error)throw r.error;
+    try{await syncCustomers(user);await syncProducts();await syncQuotes();await syncOrders();
+      const state2=JSON.parse(JSON.stringify(db));
+      const r2=await sb.from('settings').upsert({key:keyFor(user.id),value:state2,updated_at:new Date().toISOString()},{onConflict:'key'});
+      if(r2.error)throw r2.error;
+    }catch(e){console.warn('Normalized cloud sync:',e)}
+  }
+  window.__v17CloudPersist=function(localDb){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(async()=>{try{const {data:{user}}=await sb.auth.getUser();if(user)await persistNow(localDb,user)}catch(e){console.warn('Cloud save:',e)}},500);
+  };
+  async function start(){
+    document.getElementById('v13AuthLogo').src=LOGIN_LOGO;
+    const {data:{session}}=await sb.auth.getSession();
+    if(session?.user){showApp(session.user);await loadState(session.user);}else showLogin();
+    sb.auth.onAuthStateChange(async(event,session2)=>{
+      if(session2?.user){showApp(session2.user);await loadState(session2.user);}else showLogin();
+    });
+  }
+  document.getElementById('v13LoginBtn').onclick=async()=>{
+    const email=document.getElementById('v13Email').value.trim(),password=document.getElementById('v13Password').value;
+    if(!email||!password)return setMsg('Informe e-mail e senha.');
+    setMsg('Entrando...');
+    const {error}=await sb.auth.signInWithPassword({email,password}); if(error)return setMsg(error.message); setMsg('Login realizado.',true);
+  };
+  document.getElementById('v13SignupBtn').onclick=async()=>{
+    const email=document.getElementById('v13Email').value.trim(),password=document.getElementById('v13Password').value;
+    if(!email||password.length<6)return setMsg('Informe um e-mail e uma senha com pelo menos 6 caracteres.');
+    setMsg('Criando conta...');
+    const {data,error}=await sb.auth.signUp({email,password});
+    if(error)return setMsg(error.message);
+    if(data.session){setMsg('Conta criada e login realizado.',true);}else setMsg('Conta criada. Verifique seu e-mail para confirmar o acesso.',true);
+  };
+  document.getElementById('v13LogoutBtn').onclick=async()=>{await sb.auth.signOut();};
+  start();
+})();
+</script>
 </body>
 </html>
