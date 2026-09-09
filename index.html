@@ -286,6 +286,10 @@ html,body{max-width:100%;overflow-x:hidden}
 </style>
 <style>/* V28 — Financeiro profissional */
 .cash-toolbar{display:grid;grid-template-columns:1fr 170px 170px auto;gap:10px;margin:14px 0}.cash-toolbar input,.cash-toolbar select{height:42px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px 11px;outline:none}.cash-toolbar input:focus,.cash-toolbar select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #00afe922}.cash-summary{margin-top:16px}.cash-summary .stat{min-height:112px}.cash-net-positive{color:#087746}.cash-net-negative{color:#b42318}.cash-row-cancelado{opacity:.62;background:#fff8f8}.cash-type-entry{color:#087746;font-weight:800}.cash-type-exit{color:#a5165e;font-weight:800}.cash-note{font-size:12px;color:var(--muted);margin-top:5px}@media(max-width:900px){.cash-toolbar{grid-template-columns:1fr 1fr}.cash-toolbar button{grid-column:1/-1}}@media(max-width:600px){.cash-toolbar{grid-template-columns:1fr}.cash-toolbar button{grid-column:auto}}</style>
+
+<style id="v29-dashboard-gerencial">
+.dash-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px;padding:13px 15px;background:#fff;border:1px solid var(--line);border-radius:14px}.dash-toolbar strong{display:block;font-size:14px}.dash-toolbar span{display:block;color:var(--muted);font-size:12px;margin-top:2px}.dash-periods{display:flex;gap:5px;flex-wrap:wrap}.dash-periods button{border:1px solid var(--line);background:#fff;padding:8px 11px;border-radius:9px;font-size:12px;cursor:pointer}.dash-periods button.active{background:#17191d;color:#fff;border-color:#17191d}.dash-kpis .dash-kpi{min-height:126px}.dash-kpi-note{font-size:11px;color:var(--muted);margin-top:8px}.dash-kpi-note .badge{font-size:10px}.dash-grid-2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:16px}.dash-panel{padding:18px}.dash-panel .section-head{margin-bottom:12px}.dash-panel h2{font-size:17px}.dash-muted{font-size:11px;color:var(--muted);margin-top:3px}.dash-ranking-row,.dash-pay-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.dash-ranking-row:last-child,.dash-pay-row:last-child{border-bottom:0}.rank{width:26px;height:26px;border-radius:8px;background:#f2f3f5;display:grid;place-items:center;font-weight:800;font-size:12px}.rank-main{flex:1;min-width:0}.rank-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rank-main span{display:block;color:var(--muted);font-size:11px;margin-top:2px}.dash-pay-row span{flex:1}.dash-alerts{margin-top:16px}.dash-alert{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.dash-alert:last-child{border-bottom:0}.dash-alert>span{width:34px;height:34px;border-radius:10px;background:#f3f4f6;display:grid;place-items:center}.dash-alert>div{flex:1;min-width:0}.dash-alert strong{display:block;font-size:13px}.dash-alert small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.dash-alert.warning>span{background:#fff5df}.dash-alert.pink>span{background:#fde8f1}.dash-alert.good>span{background:#e8f7ef}.dash-alert .btn{padding:7px 10px;font-size:11px}.dash-kpis{margin-bottom:0}.dash-toolbar + .dash-kpis{margin-top:0}@media(max-width:760px){.dash-toolbar{align-items:flex-start;flex-direction:column}.dash-periods{width:100%}.dash-periods button{flex:1}.dash-grid-2{grid-template-columns:1fr}.dash-alert{align-items:flex-start;flex-wrap:wrap}.dash-alert .btn{margin-left:46px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -403,7 +407,7 @@ const seedServices=[
 let db=JSON.parse(localStorage.getItem('graficaDB')||'null')||{services:seedServices,clients:[],quotes:[],orders:[],cash:[]};
 function save(){
  localStorage.setItem('graficaDB',JSON.stringify(db));
- try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V28',date:new Date().toISOString(),db}))}catch(e){}
+ try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V29',date:new Date().toISOString(),db}))}catch(e){}
  try{if(window.__v13CloudPersist) window.__v13CloudPersist(db)}catch(e){console.warn('Cloud save:',e)}
 
 }
@@ -423,44 +427,63 @@ function render(page='dashboard'){
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>render(b.dataset.page));
 
 function dashboard(){
- const d=today(), orders=db.orders.filter(o=>o.date===d), received=db.cash.filter(x=>{if(x.date!==d||x.type!=='entrada')return false;const m=String(x.desc||'').match(/^Pedido #(\d+)/);return !(m&&db.orders.find(o=>Number(o.id)===Number(m[1])&&o.status==='Cancelado'));}).reduce((a,x)=>a+Number(x.value),0);
+ const period=window.__dashPeriod||'month';
+ const todayStr=today();
+ const parseDate=x=>{const [y,m,d]=String(x||'').split('-').map(Number);return new Date(y||1970,(m||1)-1,d||1)};
+ const startOfDay=new Date(parseDate(todayStr));
+ let start=new Date(startOfDay), end=new Date(startOfDay), label='Este mês';
+ if(period==='today'){label='Hoje';}
+ else if(period==='7'){start.setDate(start.getDate()-6);label='Últimos 7 dias';}
+ else if(period==='all'){start=new Date(2000,0,1);label='Todo o período';}
+ else{start=new Date(startOfDay.getFullYear(),startOfDay.getMonth(),1);label='Este mês';}
+ const inRange=o=>{const d=parseDate(o.date);return d>=start&&d<=end};
+ const validOrders=db.orders.filter(o=>o.status!=='Cancelado'&&inRange(o));
+ const previousDays=period==='today'?1:period==='7'?7:period==='month'?Math.max(1,end.getDate()-start.getDate()+1):0;
+ const prevStart=new Date(start), prevEnd=new Date(start);
+ if(period!=='all'){prevStart.setDate(prevStart.getDate()-previousDays);prevEnd.setDate(prevEnd.getDate()-1);}
+ const previousOrders=period==='all'?[]:db.orders.filter(o=>o.status!=='Cancelado'&&parseDate(o.date)>=prevStart&&parseDate(o.date)<=prevEnd);
+ const revenue=validOrders.reduce((a,o)=>a+Number(o.total||0),0);
+ const prevRevenue=previousOrders.reduce((a,o)=>a+Number(o.total||0),0);
+ const delta=prevRevenue?((revenue-prevRevenue)/prevRevenue*100):(revenue?100:0);
+ const estimatedCost=validOrders.reduce((sum,o)=>(sum+(o.items||[]).reduce((a,i)=>{const sv=db.services.find(s=>Number(s.id)===Number(i.serviceId));return a+Number(sv?.cost||0)*Number(i.qty||0)},0)),0);
+ const grossProfit=revenue-estimatedCost;
+ const ticket=validOrders.length?revenue/validOrders.length:0;
  const open=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status)).length;
  const ready=db.orders.filter(o=>o.status==='Pronto').length;
- const recent=db.orders.slice().sort((a,b)=>b.id-a.id).slice(0,8);
-
+ const todayOrders=db.orders.filter(o=>o.date===todayStr&&o.status!=='Cancelado');
+ const overdueOpen=db.orders.filter(o=>o.status!=='Entregue'&&o.status!=='Cancelado'&&o.date<todayStr);
+ const serviceMap={};
+ validOrders.forEach(o=>(o.items||[]).forEach(i=>{const k=i.serviceId||i.name||'outro';if(!serviceMap[k])serviceMap[k]={name:i.name||'Serviço',qty:0,revenue:0};serviceMap[k].qty+=Number(i.qty||0);serviceMap[k].revenue+=Number(i.total||0)}));
+ const topServices=Object.values(serviceMap).sort((a,b)=>b.revenue-a.revenue).slice(0,5);
+ const payMap={};
+ validOrders.forEach(o=>{const k=o.pay||'A pagar';payMap[k]=(payMap[k]||0)+Number(o.total||0)});
+ const payRows=Object.entries(payMap).sort((a,b)=>b[1]-a[1]);
+ const lowMargin=db.services.filter(s=>Number(s.price)>0&&((Number(s.price)-Number(s.cost))/Number(s.price)*100)<30);
+ const fmtDelta=delta===0?'Sem variação':`${delta>0?'▲':'▼'} ${Math.abs(delta).toFixed(1)}% vs. período anterior`;
+ const deltaClass=delta>=0?'b-green':'b-pink';
+ const topHtml=topServices.length?topServices.map((x,i)=>`<div class="dash-ranking-row"><span class="rank">${i+1}</span><div class="rank-main"><strong>${esc(x.name)}</strong><span>${x.qty} unidade(s)</span></div><strong>${money(x.revenue)}</strong></div>`).join(''):'<div class="empty">Ainda não há vendas no período.</div>';
+ const payHtml=payRows.length?payRows.map(([k,v])=>`<div class="dash-pay-row"><span>${esc(k)}</span><strong>${money(v)}</strong></div>`).join(''):'<div class="empty">Sem vendas no período.</div>';
+ const alertHtml=`${open?`<div class="dash-alert"><span>⏳</span><div><strong>${open} pedido(s) em aberto</strong><small>Há vendas aguardando produção ou entrega.</small></div><button class="btn secondary" onclick="render('pedidos')">Ver pedidos</button></div>`:''}${overdueOpen.length?`<div class="dash-alert warning"><span>⚠️</span><div><strong>${overdueOpen.length} pedido(s) antigo(s) em aberto</strong><small>Confira os pedidos que continuam abertos de dias anteriores.</small></div><button class="btn secondary" onclick="render('pedidos')">Conferir</button></div>`:''}${lowMargin.length?`<div class="dash-alert pink"><span>📉</span><div><strong>${lowMargin.length} serviço(s) abaixo de 30% de margem</strong><small>${esc(lowMargin.slice(0,3).map(s=>s.name).join(', '))}${lowMargin.length>3?'…':''}</small></div><button class="btn secondary" onclick="render('servicos')">Revisar</button></div>`:''}${!open&&!overdueOpen.length&&!lowMargin.length?'<div class="dash-alert good"><span>✓</span><div><strong>Operação em dia</strong><small>Nenhum alerta importante encontrado agora.</small></div></div>':''}`;
  document.getElementById('page').innerHTML=`
- <div class="grid stats">
-  <div class="card stat"><div class="label">Vendas hoje</div><div class="value">${money(received)}</div></div>
-  <div class="card stat"><div class="label">Pedidos em aberto</div><div class="value">${open}</div></div>
-  <div class="card stat"><div class="label">Prontos para entregar</div><div class="value">${ready}</div></div>
-  <div class="card stat"><div class="label">Pedidos hoje</div><div class="value">${orders.length}</div></div>
+ <div class="dash-toolbar"><div><strong>Visão gerencial</strong><span>${label}</span></div><div class="dash-periods"><button class="${period==='today'?'active':''}" onclick="setDashPeriod('today')">Hoje</button><button class="${period==='7'?'active':''}" onclick="setDashPeriod('7')">7 dias</button><button class="${period==='month'?'active':''}" onclick="setDashPeriod('month')">Este mês</button><button class="${period==='all'?'active':''}" onclick="setDashPeriod('all')">Tudo</button></div></div>
+ <div class="grid stats dash-kpis">
+  <div class="card stat dash-kpi"><div class="label">Faturamento</div><div class="value">${money(revenue)}</div><div class="dash-kpi-note"><span class="badge ${deltaClass}">${fmtDelta}</span></div></div>
+  <div class="card stat dash-kpi"><div class="label">Lucro estimado</div><div class="value">${money(grossProfit)}</div><div class="dash-kpi-note">Venda − custos cadastrados</div></div>
+  <div class="card stat dash-kpi"><div class="label">Ticket médio</div><div class="value">${money(ticket)}</div><div class="dash-kpi-note">${validOrders.length} venda(s) válida(s)</div></div>
+  <div class="card stat dash-kpi"><div class="label">Em aberto</div><div class="value">${open}</div><div class="dash-kpi-note">${ready} pronto(s) para entregar</div></div>
  </div>
-
+ <div class="dash-grid-2">
+  <div class="card dash-panel"><div class="section-head"><div><h2>Serviços mais vendidos</h2><div class="dash-muted">Ranking por faturamento no período</div></div><button class="btn secondary" onclick="render('servicos')">Tabela de preços</button></div><div class="dash-ranking">${topHtml}</div></div>
+  <div class="card dash-panel"><div class="section-head"><div><h2>Formas de pagamento</h2><div class="dash-muted">Distribuição do faturamento</div></div></div><div class="dash-payments">${payHtml}</div></div>
+ </div>
+ <div class="card dash-panel dash-alerts"><div class="section-head"><div><h2>Alertas e ações</h2><div class="dash-muted">Pontos que merecem atenção</div></div></div>${alertHtml}</div>
  <div class="quick-sales">
-  <div class="quick-sale-card sale">
-   <div style="display:flex;align-items:center;gap:12px;min-width:0">
-    <div class="qs-icon">🛒</div>
-    <div><h3>Registrar uma venda</h3><p>Venda feita no balcão? Lance aqui rapidamente.</p></div>
-   </div>
-   <button class="btn primary" onclick="newOrder()">+ Nova venda</button>
-  </div>
-  <div class="quick-sale-card quote">
-   <div style="display:flex;align-items:center;gap:12px;min-width:0">
-    <div class="qs-icon">🧾</div>
-    <div><h3>Criar orçamento</h3><p>Monte um orçamento para enviar ao cliente.</p></div>
-   </div>
-   <button class="btn pink" onclick="newQuote()">Novo orçamento</button>
-  </div>
+  <div class="quick-sale-card sale"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🛒</div><div><h3>Registrar uma venda</h3><p>Venda feita no balcão? Lance aqui rapidamente.</p></div></div><button class="btn primary" onclick="newOrder()">+ Nova venda</button></div>
+  <div class="quick-sale-card quote"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🧾</div><div><h3>Criar orçamento</h3><p>Monte um orçamento para enviar ao cliente.</p></div></div><button class="btn pink" onclick="newQuote()">Novo orçamento</button></div>
  </div>
-
- <div class="section card dashboard-sales">
-  <div class="section-head">
-   <div><h2>Vendas e pedidos recentes</h2><div class="sales-count">${recent.length} registro(s) recente(s)</div></div>
-   <button class="btn secondary" onclick="render('pedidos')">Ver vendas</button>
-  </div>
-  ${orderTable(recent)}
- </div>`;
+ <div class="section card dashboard-sales"><div class="section-head"><div><h2>Vendas recentes</h2><div class="sales-count">${todayOrders.length} venda(s) hoje • ${validOrders.length} no período</div></div><button class="btn secondary" onclick="render('pedidos')">Ver vendas</button></div>${orderTable(db.orders.filter(o=>o.status!=='Cancelado').slice().sort((a,b)=>b.id-a.id).slice(0,8))}</div>`;
 }
+function setDashPeriod(p){window.__dashPeriod=p;render('dashboard')}
 function orderTable(arr){
  if(!arr.length)return '<div class="empty">Nenhuma venda ou pedido cadastrado ainda.</div>';
  return `<div class="table-wrap"><table class="table"><thead><tr><th>Nº</th><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead><tbody>${arr.map(o=>`<tr><td>#${o.id}</td><td>${esc(o.client||'Balcão')}</td><td>${esc(o.summary||((o.items||[]).map(i=>`${i.qty}x ${i.name}`).join(', ')||'—'))}</td><td>${money(o.total)}</td><td><span class="badge ${o.status==='Pronto'?'b-green':o.status==='Em produção'?'b-yellow':o.status==='Entregue'?'b-blue':'b-pink'}">${esc(o.status)}</span></td><td>${o.date.split('-').reverse().join('/')}</td><td class="order-actions"><button class="btn secondary order-action" onclick="editOrder(${o.id})">✏️ Editar</button><button class="btn danger order-action" onclick="deleteOrder(${o.id})">🗑️ Excluir</button></td></tr>`).join('')}</tbody></table></div>`
@@ -1305,7 +1328,7 @@ setTimeout(v4Render,500);
         if(remote && typeof remote==='object' && (remote.services||remote.clients||remote.quotes||remote.orders||remote.cash)){
           db=remote;
           localStorage.setItem('graficaDB',JSON.stringify(db));
-          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V28',date:new Date().toISOString(),db}))}catch(e){}
+          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V29',date:new Date().toISOString(),db}))}catch(e){}
           render();
           setMsg('Dados carregados da nuvem.',true);
           return true;
