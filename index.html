@@ -253,6 +253,21 @@ html,body{max-width:100%;overflow-x:hidden}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* V23 — acabamento profissional do formulário de venda */
+.sale-items-panel{border:1px solid var(--line);border-radius:14px;background:#fafbfc;padding:14px;margin-top:4px}
+.sale-items-head{margin-bottom:10px}.sale-items-head h2{margin:0 0 3px}.sale-helper{font-size:12px;color:var(--muted)}
+.sale-columns{display:grid;grid-template-columns:minmax(240px,2.5fr) .7fr .9fr .9fr 38px;gap:8px;padding:0 48px 6px 0;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.sale-items-panel .itemrow{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin-bottom:9px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.sale-items-panel .itemrow .field label{font-size:11px}.sale-items-panel .itemrow input,.sale-items-panel .itemrow select{border-radius:9px;min-height:42px}
+.sale-items-panel .item-empty-note{grid-column:1/-1;color:#9ca3af;font-size:12px;padding:2px 0 4px}
+.sale-items-panel .itemrow:not(.has-service) .item-qty-field,.sale-items-panel .itemrow:not(.has-service) .item-price-field,.sale-items-panel .itemrow:not(.has-service) .item-total-wrap{display:none}
+.sale-items-panel .itemrow.has-service .item-empty-note{display:none}
+.sale-items-panel .item-total{font-weight:800;background:#f7f8fa!important}
+.sale-items-panel .remove{border:0;cursor:pointer;font-size:22px;font-weight:700}
+.sale-total-box{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:14px 16px;border-radius:12px;background:#111827;color:#fff}.sale-total-box strong{font-size:24px}.sale-total-label{display:block;font-size:13px;font-weight:800}.sale-total-box small{display:block;color:#cbd5e1;font-size:11px;margin-top:2px}
+@media(max-width:700px){.modalbox{padding:15px}.sale-columns{display:none}.sale-items-panel{padding:10px}.sale-items-panel .itemrow{grid-template-columns:1fr 1fr!important;gap:9px}.sale-items-panel .itemrow .field:first-child{grid-column:1/-1}.sale-items-panel .itemrow .remove{position:absolute;right:10px;top:10px;width:36px}.sale-items-panel .itemrow{position:relative;padding-top:12px;padding-right:50px}.sale-items-panel .itemrow .item-total-wrap{grid-column:1/-1}.sale-total-box{padding:13px}.sale-total-box strong{font-size:21px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -370,7 +385,7 @@ const seedServices=[
 let db=JSON.parse(localStorage.getItem('graficaDB')||'null')||{services:seedServices,clients:[],quotes:[],orders:[],cash:[]};
 function save(){
  localStorage.setItem('graficaDB',JSON.stringify(db));
- try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V21',date:new Date().toISOString(),db}))}catch(e){}
+ try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V23',date:new Date().toISOString(),db}))}catch(e){}
  try{if(window.__v13CloudPersist) window.__v13CloudPersist(db)}catch(e){console.warn('Cloud save:',e)}
 
 }
@@ -390,7 +405,7 @@ function render(page='dashboard'){
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>render(b.dataset.page));
 
 function dashboard(){
- const d=today(), orders=db.orders.filter(o=>o.date===d), received=db.cash.filter(x=>x.date===d&&x.type==='entrada').reduce((a,x)=>a+Number(x.value),0);
+ const d=today(), orders=db.orders.filter(o=>o.date===d), received=db.cash.filter(x=>x.date===d&&x.type==='entrada'&&!((String(x.desc||'').match(/^Pedido #(\d+)/)||[])[1]&&db.orders.find(o=>Number(o.id)===Number((String(x.desc||'').match(/^Pedido #(\d+)/)||[])[1])&&o.status==='Cancelado')).reduce((a,x)=>a+Number(x.value),0);
  const open=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status)).length;
  const ready=db.orders.filter(o=>o.status==='Pronto').length;
  const recent=db.orders.slice().sort((a,b)=>b.id-a.id).slice(0,8);
@@ -578,11 +593,12 @@ function newOrder(){
   <div class="field"><label>Forma de pagamento</label><select id="qpay"><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>A pagar</option></select></div>
   <div class="field"><label>Observação</label><input id="orderObs" placeholder="Prazo, retirada, detalhes..."></div>
  </div>
- <div class="section">
-  <div class="section-head"><h2>Itens da venda</h2><button class="btn secondary" onclick="addItem()">+ Item</button></div>
+ <div class="sale-items-panel">
+  <div class="section-head sale-items-head"><div><h2>Itens da venda</h2><div class="sale-helper">Adicione um ou mais serviços e informe a quantidade.</div></div><button class="btn secondary" onclick="addItem()">+ Adicionar item</button></div>
+  <div class="sale-columns"><span>Serviço</span><span>Quantidade</span><span>Valor unit.</span><span>Subtotal</span></div>
   <div id="items"></div>
  </div>
- <div class="total">Total: <span id="qtotal">R$ 0,00</span></div>
+ <div class="sale-total-box"><div><span class="sale-total-label">Total da venda</span><small>Confira antes de registrar</small></div><strong id="qtotal">R$ 0,00</strong></div>
  <div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveOrder()">Registrar venda</button></div>`);
  addItem();
 }
@@ -618,8 +634,8 @@ function editOrder(id){
   <div class="field"><label>Status</label><select id="eoStatus"><option ${o.status==='Em produção'?'selected':''}>Em produção</option><option ${o.status==='Pronto'?'selected':''}>Pronto</option><option ${o.status==='Entregue'?'selected':''}>Entregue</option><option ${o.status==='Cancelado'?'selected':''}>Cancelado</option></select></div>
   <div class="field full"><label>Observação</label><textarea id="eoObs" rows="3">${esc(o.obs||'')}</textarea></div>
  </div>
- <div class="section"><div class="section-head"><h2>Itens da venda</h2><button type="button" class="btn secondary" onclick="addEditOrderItem()">+ Item</button></div><div id="editOrderItems"></div></div>
- <div class="total">Total: <span id="eoTotal">${money(o.total||0)}</span></div>
+ <div class="sale-items-panel"><div class="section-head sale-items-head"><div><h2>Itens da venda</h2><div class="sale-helper">Edite quantidade, preço ou adicione novos serviços.</div></div><button type="button" class="btn secondary" onclick="addEditOrderItem()">+ Adicionar item</button></div><div class="sale-columns"><span>Serviço</span><span>Quantidade</span><span>Valor unit.</span><span>Subtotal</span></div><div id="editOrderItems"></div></div>
+ <div class="sale-total-box"><div><span class="sale-total-label">Total da venda</span><small>Atualizado automaticamente</small></div><strong id="eoTotal">${money(o.total||0)}</strong></div>
  <div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveEditedOrder(${o.id})">Salvar alterações</button></div>`);
  window.__editOrderItems=items.map(i=>({...i}));
  window.__renderEditOrderItems();
@@ -667,6 +683,7 @@ function saveEditedOrder(id){
  if(!arr.length)return toast('Adicione pelo menos um item.');
  const items=arr.map(it=>{const svc=db.services.find(x=>String(x.id)===String(it.serviceId));const qty=Math.max(1,Number(it.qty||1));const price=Math.max(0,Number(it.price||0));return{serviceId:svc.id,name:svc.name,qty,price,total:qty*price};});
  const oldPaid=o.pay&&o.pay!=='A pagar';
+ const oldStatus=o.status;
  const newPay=document.getElementById('eoPay').value;
  const oldTotal=Number(o.total||0), newTotal=items.reduce((a,i)=>a+i.total,0);
  o.clientId=document.getElementById('eoClient').value||'';
@@ -678,12 +695,17 @@ function saveEditedOrder(id){
  o.items=items;
  o.total=newTotal;
  o.summary=items.map(i=>`${i.qty}x ${i.name}`).join(', ');
- if(oldPaid){
+ if(o.status==='Cancelado'){
+   db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`)));
+ } else if(oldPaid){
    const ce=db.cash.find(x=>String(x.desc||'').startsWith(`Pedido #${id} —`) && x.type==='entrada');
-   if(ce){ce.value=newTotal;ce.method=newPay;ce.desc=`Pedido #${id} — ${o.client}`;}
+   if(newPay==='A pagar'){
+     db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`)));
+   } else if(ce){ce.value=newTotal;ce.method=newPay;ce.desc=`Pedido #${id} — ${o.client}`;}
+   else db.cash.push({id:Date.now(),date:today(),type:'entrada',value:newTotal,desc:`Pedido #${id} — ${o.client}`,method:newPay});
+ } else if(newPay!=='A pagar'){
+   db.cash.push({id:Date.now(),date:today(),type:'entrada',value:newTotal,desc:`Pedido #${id} — ${o.client}`,method:newPay});
  }
- if(!oldPaid && newPay!=='A pagar') db.cash.push({id:Date.now(),date:today(),type:'entrada',value:newTotal,desc:`Pedido #${id} — ${o.client}`,method:newPay});
- if(oldPaid && newPay==='A pagar') db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`)));
  save();closeModal();render('pedidos');toast(`Venda #${id} atualizada com ${items.length} item(ns)!`);
 }
 
@@ -1120,7 +1142,7 @@ setTimeout(v4Render,500);
         if(remote && typeof remote==='object' && (remote.services||remote.clients||remote.quotes||remote.orders||remote.cash)){
           db=remote;
           localStorage.setItem('graficaDB',JSON.stringify(db));
-          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V21',date:new Date().toISOString(),db}))}catch(e){}
+          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V23',date:new Date().toISOString(),db}))}catch(e){}
           render();
           setMsg('Dados carregados da nuvem.',true);
           return true;
