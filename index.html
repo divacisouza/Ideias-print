@@ -1037,7 +1037,8 @@ setTimeout(v4Render,500);
 .v13-auth-card:before{content:"";display:block;width:72px;height:4px;border-radius:99px;margin:0 auto 20px;background:linear-gradient(90deg,#00afe9 0%,#eb268f 52%,#fff112 100%)}
 .v13-auth-sub{color:#68707b;margin:0 0 22px}
 .v13-auth-card label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px;color:#343942}
-.v13-auth-card input{width:100%;height:46px;border:1px solid #dfe3e8;border-radius:12px;padding:0 13px;font-size:15px;outline:none}
+.v13-auth-card input{width:100%;height:46px;border:1px solid #dfe3e8;border-radius:12px;padding:0 13px;font-size:15px;outline:none;box-sizing:border-box}
+.v22-password-wrap{position:relative}.v22-password-wrap input{padding-right:52px}.v22-eye{position:absolute;right:6px;top:5px;width:38px;height:36px;border:0;border-radius:9px;background:transparent;color:#68707b;font-size:18px;cursor:pointer}.v22-eye:hover{background:#f1f4f7}.v22-forgot-row{text-align:right;margin-top:8px}.v22-link{border:0;background:none;padding:2px 0;color:#007fae;font-weight:800;font-size:12px;cursor:pointer}.v22-link:hover{text-decoration:underline}.v22-reset-box{margin-top:14px;padding:15px;border:1px solid #e2e6ea;border-radius:14px;background:#f7f9fb}.v22-reset-title{font-weight:900;color:#222831;margin-bottom:5px}.v22-reset-text{font-size:12px;line-height:1.45;color:#68707b;margin-bottom:10px}.v22-reset-actions{display:flex;gap:8px;margin-top:9px}.v22-reset-actions button{flex:1;height:40px;border:0;border-radius:10px;font-weight:800;cursor:pointer;background:#101114;color:#fff}.v22-reset-actions button:last-child{background:#e9edf1;color:#343942}.v22-recovery-gate{position:fixed;inset:0;z-index:100000;background:linear-gradient(135deg,#101114 0%,#17191f 55%,#101114 100%);display:flex;align-items:center;justify-content:center;padding:20px}.v22-recovery-card{width:min(420px,100%);background:#fff;border-radius:24px;padding:30px;box-shadow:0 24px 70px rgba(0,0,0,.45)}.v22-recovery-title{font-size:24px;font-weight:900;color:#101114}.v22-recovery-card p{color:#68707b;font-size:13px;line-height:1.5;margin:7px 0 18px}.v22-recovery-card input{display:block;width:100%;height:46px;box-sizing:border-box;border:1px solid #dfe3e8;border-radius:12px;padding:0 13px;font-size:15px;outline:none;margin-bottom:10px}.v22-recovery-card button{width:100%;height:46px;border:0;border-radius:12px;background:#101114;color:#fff;font-weight:800;cursor:pointer;margin-top:4px}.v22-recovery-card input:focus{border-color:#00afe9;box-shadow:0 0 0 3px rgba(0,175,233,.12)}.v22-recovery-card #v22RecoveryMsg{min-height:20px;margin-top:12px;font-size:13px;font-weight:700}
 .v13-auth-card input:focus{border-color:#00afe9;box-shadow:0 0 0 3px rgba(0,175,233,.12)}
 .v13-auth-actions{display:flex;gap:10px;margin-top:18px}
 .v13-auth-actions button{flex:1;border:0;border-radius:12px;height:46px;font-weight:800;cursor:pointer}
@@ -1054,20 +1055,37 @@ setTimeout(v4Render,500);
 <div id="v13AuthGate">
   <div class="v13-auth-card">
     <div class="v13-brandmark"><img id="v13AuthLogo" alt="Ideias Print - Logo 1"></div>
-    <p class="v13-auth-sub">Sistema de gestão online • V18</p>
+    <p class="v13-auth-sub">Sistema de gestão online • V22</p>
     <label for="v13Email">E-mail</label>
     <input id="v13Email" type="email" autocomplete="email" placeholder="seu@email.com">
     <label for="v13Password">Senha</label>
-    <input id="v13Password" type="password" autocomplete="current-password" placeholder="Mínimo de 6 caracteres">
+    <div class="v22-password-wrap"><input id="v13Password" type="password" autocomplete="current-password" placeholder="Mínimo de 6 caracteres"><button type="button" id="v22TogglePassword" class="v22-eye" aria-label="Mostrar senha" title="Mostrar senha">◉</button></div>
+    <div class="v22-forgot-row"><button type="button" id="v22ForgotBtn" class="v22-link">Esqueci minha senha</button></div>
     <div class="v13-auth-actions">
       <button id="v13LoginBtn">Entrar</button>
       <button id="v13SignupBtn">Criar conta</button>
     </div>
     <div id="v13AuthMsg"></div>
+    <div id="v22ResetBox" class="v22-reset-box" style="display:none">
+      <div class="v22-reset-title">Recuperar senha</div>
+      <div class="v22-reset-text">Informe seu e-mail e enviaremos um link para criar uma nova senha.</div>
+      <input id="v22ResetEmail" type="email" autocomplete="email" placeholder="seu@email.com">
+      <div class="v22-reset-actions"><button type="button" id="v22SendReset">Enviar link</button><button type="button" id="v22CancelReset">Cancelar</button></div>
+    </div>
+  </div>
+</div>
+<div id="v22RecoveryGate" class="v22-recovery-gate" style="display:none">
+  <div class="v22-recovery-card">
+    <div class="v22-recovery-title">Criar nova senha</div>
+    <p>Digite sua nova senha para voltar a acessar o sistema.</p>
+    <input id="v22NewPassword" type="password" autocomplete="new-password" placeholder="Nova senha (mínimo 6 caracteres)">
+    <input id="v22NewPassword2" type="password" autocomplete="new-password" placeholder="Confirme a nova senha">
+    <button type="button" id="v22UpdatePassword">Salvar nova senha</button>
+    <div id="v22RecoveryMsg"></div>
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V18 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V22 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
@@ -1195,9 +1213,41 @@ setTimeout(v4Render,500);
     const {data:{session}}=await sb.auth.getSession();
     if(session?.user){showApp(session.user);await loadState(session.user);}else showLogin();
     sb.auth.onAuthStateChange(async(event,session2)=>{
+      if(event==='PASSWORD_RECOVERY'){document.getElementById('v22RecoveryGate').style.display='flex';return;}
       if(session2?.user){showApp(session2.user);await loadState(session2.user);}else showLogin();
     });
   }
+  document.getElementById('v22TogglePassword').onclick=()=>{
+    const input=document.getElementById('v13Password'),btn=document.getElementById('v22TogglePassword');
+    const show=input.type==='password'; input.type=show?'text':'password'; btn.textContent=show?'◉':'◌'; btn.setAttribute('aria-label',show?'Ocultar senha':'Mostrar senha'); btn.title=show?'Ocultar senha':'Mostrar senha';
+  };
+  document.getElementById('v22ForgotBtn').onclick=()=>{
+    const box=document.getElementById('v22ResetBox'),email=document.getElementById('v13Email').value.trim();
+    document.getElementById('v22ResetEmail').value=email; box.style.display=box.style.display==='none'?'block':'none';
+  };
+  document.getElementById('v22CancelReset').onclick=()=>{document.getElementById('v22ResetBox').style.display='none';};
+  document.getElementById('v22SendReset').onclick=async()=>{
+    const email=document.getElementById('v22ResetEmail').value.trim();
+    if(!email)return setMsg('Informe seu e-mail para recuperar a senha.');
+    setMsg('Enviando link de recuperação...');
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+    if(error)return setMsg(error.message);
+    setMsg('Link enviado. Verifique seu e-mail para criar uma nova senha.',true);
+    document.getElementById('v22ResetBox').style.display='none';
+  };
+  document.getElementById('v22UpdatePassword').onclick=async()=>{
+    const p1=document.getElementById('v22NewPassword').value,p2=document.getElementById('v22NewPassword2').value,msg=document.getElementById('v22RecoveryMsg');
+    if(p1.length<6)return msg.textContent='A senha precisa ter pelo menos 6 caracteres.';
+    if(p1!==p2)return msg.textContent='As senhas não conferem.';
+    msg.textContent='Salvando...';
+    const {error}=await sb.auth.updateUser({password:p1});
+    if(error){msg.textContent=error.message;return;}
+    msg.textContent='Senha alterada com sucesso. Entrando...';
+    setTimeout(()=>{document.getElementById('v22RecoveryGate').style.display='none';showApp();},700);
+  };
+  document.getElementById('v13Password').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('v13LoginBtn').click();});
+
   document.getElementById('v13LoginBtn').onclick=async()=>{
     const email=document.getElementById('v13Email').value.trim(),password=document.getElementById('v13Password').value;
     if(!email||!password)return setMsg('Informe e-mail e senha.');
