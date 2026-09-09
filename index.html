@@ -405,7 +405,7 @@ function render(page='dashboard'){
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>render(b.dataset.page));
 
 function dashboard(){
- const d=today(), orders=db.orders.filter(o=>o.date===d), received=db.cash.filter(x=>x.date===d&&x.type==='entrada'&&!((String(x.desc||'').match(/^Pedido #(\d+)/)||[])[1]&&db.orders.find(o=>Number(o.id)===Number((String(x.desc||'').match(/^Pedido #(\d+)/)||[])[1])&&o.status==='Cancelado')).reduce((a,x)=>a+Number(x.value),0);
+ const d=today(), orders=db.orders.filter(o=>o.date===d), received=db.cash.filter(x=>{const m=String(x.desc||'').match(/^Pedido #(\d+)/);const order=m?db.orders.find(o=>Number(o.id)===Number(m[1])):null;return x.date===d&&x.type==='entrada'&&!(order&&order.status==='Cancelado');}).reduce((a,x)=>a+Number(x.value),0);
  const open=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status)).length;
  const ready=db.orders.filter(o=>o.status==='Pronto').length;
  const recent=db.orders.slice().sort((a,b)=>b.id-a.id).slice(0,8);
