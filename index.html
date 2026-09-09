@@ -24,6 +24,8 @@ main{margin-left:245px;width:calc(100% - 245px);padding:24px;max-width:1500px}.t
 .toast{position:fixed;right:20px;bottom:20px;background:#17191d;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:30}.toast.show{display:block}
 @media(max-width:900px){aside{width:72px}.brand{padding:0 4px 12px}.brand img{height:50px;object-position:center}.nav button{font-size:0;text-align:center}.nav button::first-letter{font-size:18px}main{margin-left:72px;width:calc(100% - 72px);padding:15px}.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.stats,.formgrid{grid-template-columns:1fr}.itemrow{grid-template-columns:1fr 70px 100px 100px 38px}.top{align-items:flex-start;flex-direction:column}}
+
+.client-profile-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:16px}.client-profile-head h2{margin:0 0 4px}.client-profile-head p{margin:0;color:var(--muted)}.client-stats{margin-top:0}.client-service-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.client-service-row:last-child{border-bottom:0}.client-profile .table{min-width:760px}@media(max-width:700px){.client-profile-head{align-items:flex-start;flex-direction:column}.client-profile .table{min-width:680px}}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -571,36 +573,111 @@ function approveQuote(id){
 }
 
 function orders(){
- const arr=db.orders.slice().reverse();
+ const all=db.orders.slice().reverse();
+ const valid=all.filter(o=>o.status!=='Cancelado');
+ const inProd=all.filter(o=>o.status==='Em produção').length;
+ const ready=all.filter(o=>o.status==='Pronto').length;
+ const delivered=all.filter(o=>o.status==='Entregue').length;
+ const revenue=valid.reduce((a,o)=>a+Number(o.total||0),0);
  document.getElementById('page').innerHTML=`
  <div class="section-head">
-   <div><h2>Vendas e Pedidos</h2><div style="color:var(--muted);font-size:13px">Aqui você registra uma venda/pedido e acompanha a produção.</div></div>
+   <div><h2>Vendas e Pedidos</h2><div style="color:var(--muted);font-size:13px">Acompanhe suas vendas, produção, pagamentos e entregas em um só lugar.</div></div>
    <div style="display:flex;gap:8px;flex-wrap:wrap">
      <button class="btn secondary" onclick="newQuote()">🧾 Novo orçamento</button>
      <button class="btn primary" onclick="newOrder()">+ Nova venda / pedido</button>
    </div>
  </div>
- <div class="card" style="margin-bottom:14px">
-   <div class="section-head"><h3>Pedidos registrados</h3><span style="color:var(--muted);font-size:13px">${arr.length} pedido(s)</span></div>
-   ${orderTable(arr)}
+ <div class="orders-kpis">
+   <button class="order-kpi" onclick="ordersSetStatusFilter('')"><span class="order-kpi-label">Vendas válidas</span><strong>${valid.length}</strong><small>${money(revenue)}</small></button>
+   <button class="order-kpi k-yellow" onclick="ordersSetStatusFilter('Em produção')"><span class="order-kpi-label">Em produção</span><strong>${inProd}</strong><small>aguardando produção</small></button>
+   <button class="order-kpi k-green" onclick="ordersSetStatusFilter('Pronto')"><span class="order-kpi-label">Prontos</span><strong>${ready}</strong><small>aguardando retirada</small></button>
+   <button class="order-kpi k-blue" onclick="ordersSetStatusFilter('Entregue')"><span class="order-kpi-label">Entregues</span><strong>${delivered}</strong><small>pedidos concluídos</small></button>
  </div>
- <div class="section card">
-   <div class="section-head"><h3>Atualizar status</h3></div>
-   <div class="formgrid">
-    <div class="field"><label>Pedido</label><select id="statusOrder">${arr.map(o=>`<option value="${o.id}">#${o.id} — ${esc(o.client||'Balcão')}</option>`).join('')}</select></div>
-    <div class="field"><label>Novo status</label><select id="newStatus"><option>Em produção</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select></div>
+ <div class="card orders-filter-card">
+   <div class="orders-filter-title"><div><strong>📋 Pedidos</strong><span id="ordersCount">${all.length} registro(s)</span></div><button class="btn secondary" onclick="ordersClearFilters()">Limpar filtros</button></div>
+   <div class="orders-filters">
+     <div class="field"><label>Buscar</label><input id="ordersSearch" placeholder="Nº, cliente ou serviço..." oninput="renderOrdersFiltered()"></div>
+     <div class="field"><label>Status</label><select id="ordersStatusFilter" onchange="renderOrdersFiltered()"><option value="">Todos os status</option><option>Em produção</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select></div>
+     <div class="field"><label>Período</label><select id="ordersPeriodFilter" onchange="renderOrdersFiltered()"><option value="all">Todos</option><option value="today">Hoje</option><option value="7">Últimos 7 dias</option><option value="month">Este mês</option></select></div>
    </div>
-   <div class="actions"><button class="btn primary" onclick="changeStatus()">Salvar status</button></div>
+ </div>
+ <div class="card">
+   <div id="ordersList"></div>
  </div>`;
+ renderOrdersFiltered();
+}
+function ordersSetStatusFilter(status){
+ const s=document.getElementById('ordersStatusFilter'); if(s)s.value=status;
+ renderOrdersFiltered();
+}
+function ordersClearFilters(){
+ const a=document.getElementById('ordersSearch'),b=document.getElementById('ordersStatusFilter'),c=document.getElementById('ordersPeriodFilter');
+ if(a)a.value=''; if(b)b.value=''; if(c)c.value='all'; renderOrdersFiltered();
+}
+function renderOrdersFiltered(){
+ const wrap=document.getElementById('ordersList'); if(!wrap)return;
+ const q=(document.getElementById('ordersSearch')?.value||'').trim().toLowerCase();
+ const st=document.getElementById('ordersStatusFilter')?.value||'';
+ const period=document.getElementById('ordersPeriodFilter')?.value||'all';
+ const now=new Date(); now.setHours(0,0,0,0);
+ const cutoff=new Date(now); if(period==='7')cutoff.setDate(cutoff.getDate()-6);
+ const arr=db.orders.slice().reverse().filter(o=>{
+   if(st&&o.status!==st)return false;
+   if(q){
+     const hay=[o.id,o.client,o.summary,...(o.items||[]).map(i=>i.name)].join(' ').toLowerCase();
+     if(!hay.includes(q))return false;
+   }
+   if(period==='today'&&o.date!==today())return false;
+   if(period==='7'||period==='month'){
+     const d=new Date(String(o.date||'')+'T00:00:00');
+     if(Number.isNaN(d.getTime()))return false;
+     if(period==='month'){if(d.getFullYear()!==now.getFullYear()||d.getMonth()!==now.getMonth())return false;}
+     else if(d<cutoff)return false;
+   }
+   return true;
+ });
+ const count=document.getElementById('ordersCount'); if(count)count.textContent=`${arr.length} registro(s)`;
+ wrap.innerHTML=orderTableProfessional(arr);
+}
+function orderStatusClass(status){
+ return status==='Pronto'?'b-green':status==='Em produção'?'b-yellow':status==='Entregue'?'b-blue':'b-pink';
+}
+function orderTableProfessional(arr){
+ if(!arr.length)return '<div class="empty">Nenhuma venda encontrada com os filtros selecionados.</div>';
+ return `<div class="orders-list">${arr.map(o=>{
+   const next=o.status==='Em produção'?'Pronto':o.status==='Pronto'?'Entregue':'';
+   const items=(o.items||[]).map(i=>`${Number(i.qty||0)}x ${esc(i.name||'Serviço')}`).join(', ')||esc(o.summary||'—');
+   return `<div class="order-card-row">
+     <div class="order-main">
+       <div class="order-id">#${o.id}</div>
+       <div class="order-client"><strong>${esc(o.client||'Balcão')}</strong><span>${items}</span></div>
+       <div class="order-meta"><span>${esc(o.pay||'A pagar')}</span><span>${o.date?o.date.split('-').reverse().join('/'):'—'}</span></div>
+     </div>
+     <div class="order-finance"><span>${o.discount?`Desconto: ${money(o.discount)}`:''}</span><strong>${money(o.total||0)}</strong></div>
+     <div class="order-status"><span class="badge ${orderStatusClass(o.status)}">${esc(o.status)}</span>${next?`<button class="btn status-next" onclick="setOrderStatus(${o.id},'${next}')">✓ ${next}</button>`:''}</div>
+     <div class="order-actions"><button class="btn secondary order-action" onclick="editOrder(${o.id})">✏️ Editar</button><button class="btn danger order-action" onclick="deleteOrder(${o.id})">🗑️ Excluir</button></div>
+   </div>`;
+ }).join('')}</div>`;
+}
+function setOrderStatus(id,ns){
+ const o=db.orders.find(x=>Number(x.id)===Number(id)); if(!o)return;
+ const oldStatus=o.status;
+ o.status=ns;
+ if(ns==='Cancelado'){
+   db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${o.id} —`)));
+ }else if(o.pay&&o.pay!=='A pagar'&&!db.cash.some(x=>x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${o.id} —`))){
+   db.cash.push({id:Date.now(),date:today(),type:'entrada',value:Number(o.total||0),desc:`Pedido #${o.id} — ${o.client||'Balcão'}`,method:o.pay});
+ }
+ save();render('pedidos');toast(`Pedido #${id}: ${ns}.`);
 }
 
-function newOrder(){
+function newOrder(preselectedClientId=''){
  openModal('Nova venda / pedido',`
  <div class="formgrid">
   <div class="field full">
    <label>Cliente</label>
    <div style="display:flex;gap:8px;align-items:center">
-    <select id="qclient" class="client-select" style="flex:1">${clientOptions()}</select>
+    <select id="qclient" class="client-select" style="flex:1">${clientOptions(preselectedClientId)}</select>
     <button type="button" class="btn secondary" onclick="quickNewClient()">+ Novo cliente</button>
    </div>
   </div>
@@ -773,7 +850,27 @@ function deleteOrder(id){
 function changeStatus(){const o=db.orders.find(x=>x.id==document.getElementById('statusOrder').value);if(!o)return;const ns=document.getElementById('newStatus').value;o.status=ns;if(ns==='Cancelado'){db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${o.id} —`)));}else if(o.pay&&o.pay!=='A pagar'&&!db.cash.some(x=>x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${o.id} —`))){db.cash.push({id:Date.now(),date:today(),type:'entrada',value:Number(o.total||0),desc:`Pedido #${o.id} — ${o.client||'Balcão'}`,method:o.pay});}save();render('pedidos');toast('Status atualizado!')}
 
 function clients(){
- document.getElementById('page').innerHTML=`<div class="section-head"><h2>Clientes</h2><button class="btn primary" onclick="newClient()">+ Cliente</button></div><div class="card table-wrap"><table class="table"><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th></th></tr></thead><tbody>${db.clients.length?db.clients.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.email)}</td><td><button class="btn secondary" onclick="editClient(${c.id})">Editar</button> <button class="btn secondary" onclick="deleteClient(${c.id})">Excluir</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhum cliente cadastrado.</td></tr>'}</tbody></table></div>`;
+ document.getElementById('page').innerHTML=`<div class="section-head"><div><h2>Clientes</h2><div class="sale-helper">Clique em <b>Ver ficha</b> para consultar o histórico de compras.</div></div><button class="btn primary" onclick="newClient()">+ Cliente</button></div><div class="card table-wrap"><table class="table"><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>${db.clients.length?db.clients.map(c=>`<tr><td><strong>${esc(c.name)}</strong></td><td>${esc(c.phone)}</td><td>${esc(c.email)}</td><td><button class="btn primary" onclick="clientProfile(${c.id})">Ver ficha</button> <button class="btn secondary" onclick="editClient(${c.id})">Editar</button> <button class="btn secondary" onclick="deleteClient(${c.id})">Excluir</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhum cliente cadastrado.</td></tr>'}</tbody></table></div>`;
+}
+
+function clientProfile(id){
+ const c=db.clients.find(x=>Number(x.id)===Number(id)); if(!c)return;
+ const orders=db.orders.filter(o=>String(o.clientId||'')===String(id) || (!o.clientId && o.client===c.name));
+ const valid=orders.filter(o=>o.status!=='Cancelado');
+ const total=valid.reduce((a,o)=>a+Number(o.total||0),0);
+ const avg=valid.length?total/valid.length:0;
+ const last=valid.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0];
+ const counts={};
+ valid.forEach(o=>(Array.isArray(o.items)?o.items:[]).forEach(i=>{const n=i.name||db.services.find(s=>String(s.id)===String(i.serviceId))?.name||'Serviço';counts[n]=(counts[n]||0)+Number(i.qty||0)}));
+ const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+ const statusLabel=s=>s==='Cancelado'?'🔴 Cancelado':s==='Entregue'?'🟢 Entregue':s==='Pronto'?'🔵 Pronto':'🟡 Em produção';
+ const rows=orders.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(o=>`<tr><td><strong>#${o.id}</strong></td><td>${esc(o.date||'-')}</td><td>${esc(o.summary||((o.items||[]).map(i=>`${i.qty}x ${i.name}`).join(', '))||'-')}</td><td>${money(o.total||0)}</td><td>${statusLabel(o.status)}</td><td><button class="btn secondary" onclick="closeModal();setTimeout(()=>editOrder(${o.id}),50)">Ver pedido</button></td></tr>`).join('');
+ openModal('Ficha do cliente',`<div class="client-profile">
+  <div class="client-profile-head"><div><h2>${esc(c.name)}</h2><p>${esc(c.phone||'Telefone não informado')}${c.email?` · ${esc(c.email)}`:''}</p></div><button class="btn primary" onclick="closeModal();setTimeout(()=>newOrder(${c.id}),50)">+ Nova venda</button></div>
+  <div class="grid stats client-stats"><div class="card stat"><div class="label">Pedidos</div><div class="value">${valid.length}</div></div><div class="card stat"><div class="label">Total comprado</div><div class="value">${money(total)}</div></div><div class="card stat"><div class="label">Ticket médio</div><div class="value">${money(avg)}</div></div><div class="card stat"><div class="label">Última compra</div><div class="value" style="font-size:18px">${esc(last?.date||'—')}</div></div></div>
+  <div class="card" style="margin-top:16px;padding:16px"><div class="section-head"><div><h3 style="margin:0">Serviços mais comprados</h3><div class="sale-helper">Baseado nas vendas não canceladas.</div></div></div>${top.length?top.map(([n,q])=>`<div class="client-service-row"><span>${esc(n)}</span><strong>${q} un.</strong></div>`).join(''):'<div class="empty">Ainda não há compras registradas.</div>'}</div>
+  <div class="card table-wrap" style="margin-top:16px"><div style="padding:16px 16px 4px"><h3 style="margin:0">Histórico de compras</h3></div><table class="table"><thead><tr><th>Pedido</th><th>Data</th><th>Itens</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">Nenhum pedido para este cliente.</td></tr>'}</tbody></table></div>
+ </div>`);
 }
 
 function editClient(id){
@@ -1125,6 +1222,9 @@ setTimeout(v4Render,500);
 .v13-userbar{position:fixed;top:12px;right:14px;z-index:9990;display:flex;align-items:center;gap:8px;background:rgba(16,17,20,.92);color:#fff;border-radius:999px;padding:7px 9px 7px 12px;font-size:12px;box-shadow:0 8px 30px rgba(0,0,0,.16)}
 .v13-userbar button{border:0;background:#fff;color:#101114;border-radius:999px;padding:6px 10px;font-weight:800;cursor:pointer}
 @media(max-width:700px){.v13-userbar{top:auto;bottom:50px;right:10px}.v13-cloud-badge{bottom:10px;left:10px;right:auto}}
+
+/* V25 — painel profissional de pedidos */
+.orders-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 14px}.order-kpi{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:16px;text-align:left;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.05)}.order-kpi:hover{transform:translateY(-1px);box-shadow:0 9px 24px rgba(0,0,0,.08)}.order-kpi-label{display:block;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase}.order-kpi strong{display:block;font-size:25px;margin:4px 0}.order-kpi small{color:var(--muted);font-size:12px}.orders-filter-card{margin-bottom:14px}.orders-filter-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.orders-filter-title span{color:var(--muted);font-size:12px;margin-left:8px}.orders-filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}.orders-list{display:flex;flex-direction:column}.order-card-row{display:grid;grid-template-columns:minmax(0,1.8fr) 130px 160px auto;gap:14px;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line)}.order-card-row:last-child{border-bottom:0}.order-main{display:grid;grid-template-columns:54px minmax(0,1fr);gap:10px;align-items:center}.order-id{font-weight:800;font-size:13px}.order-client{min-width:0}.order-client strong,.order-client span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.order-client span{font-size:12px;color:var(--muted);margin-top:3px}.order-meta{grid-column:2;display:flex;gap:10px;color:var(--muted);font-size:11px;margin-top:-4px}.order-finance{text-align:right}.order-finance span{display:block;font-size:11px;color:var(--muted);min-height:16px}.order-finance strong{font-size:16px}.order-status{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.status-next{font-size:11px!important;padding:6px 8px!important}.order-actions{display:flex;gap:6px;white-space:nowrap}.order-action{font-size:12px!important;padding:7px 9px!important}@media(max-width:950px){.orders-kpis{grid-template-columns:repeat(2,1fr)}.order-card-row{grid-template-columns:minmax(0,1fr) 120px;gap:10px}.order-finance{text-align:left}.order-status{grid-column:1}.order-actions{grid-column:2;grid-row:2;justify-content:flex-end}}@media(max-width:650px){.orders-filters{grid-template-columns:1fr}.orders-kpis{grid-template-columns:1fr 1fr}.order-card-row{grid-template-columns:1fr}.order-finance{display:flex;justify-content:space-between;align-items:center}.order-status,.order-actions{grid-column:auto;grid-row:auto}.order-actions{justify-content:flex-start}.order-main{grid-template-columns:45px minmax(0,1fr)}}
 </style>
 
 <div id="v13AuthGate">
