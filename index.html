@@ -288,6 +288,9 @@ html,body{max-width:100%;overflow-x:hidden}
 .cash-toolbar{display:grid;grid-template-columns:1fr 170px 170px auto;gap:10px;margin:14px 0}.cash-toolbar input,.cash-toolbar select{height:42px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px 11px;outline:none}.cash-toolbar input:focus,.cash-toolbar select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #00afe922}.cash-summary{margin-top:16px}.cash-summary .stat{min-height:112px}.cash-net-positive{color:#087746}.cash-net-negative{color:#b42318}.cash-row-cancelado{opacity:.62;background:#fff8f8}.cash-type-entry{color:#087746;font-weight:800}.cash-type-exit{color:#a5165e;font-weight:800}.cash-note{font-size:12px;color:var(--muted);margin-top:5px}@media(max-width:900px){.cash-toolbar{grid-template-columns:1fr 1fr}.cash-toolbar button{grid-column:1/-1}}@media(max-width:600px){.cash-toolbar{grid-template-columns:1fr}.cash-toolbar button{grid-column:auto}}</style>
 
 <style id="v29-dashboard-gerencial">
+\n/* V30 — Dashboard Estratégico */
+.v30-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.v30-meta input{width:125px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff}.v30-meta label{font-size:11px;color:var(--muted);font-weight:700}.v30-progress{height:8px;background:#eef0f3;border-radius:99px;overflow:hidden;margin-top:9px}.v30-progress>span{display:block;height:100%;background:linear-gradient(90deg,#11b7d9,#d91d86,#f1c40f);border-radius:99px}.v30-grid{display:grid;grid-template-columns:1.55fr .95fr;gap:16px;margin-top:16px}.v30-chart{height:230px;display:flex;align-items:stretch;gap:7px;padding:12px 2px 0}.v30-chart-col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}.v30-bar-wrap{height:170px;width:100%;display:flex;align-items:flex-end;justify-content:center}.v30-bar{width:min(28px,72%);min-height:3px;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,#14b8d4,#d51c87)}.v30-chart-col small{font-size:9px;color:var(--muted);white-space:nowrap}.v30-chart-col strong{font-size:9px;color:#444}.v30-chart-empty{height:170px;display:grid;place-items:center;color:var(--muted);font-size:12px}.v30-goal{padding:14px;border:1px solid var(--line);border-radius:12px;background:#fafbfc}.v30-goal-top{display:flex;justify-content:space-between;gap:10px;align-items:center}.v30-goal-top strong{font-size:18px}.v30-goal-top span{font-size:11px;color:var(--muted)}.v30-insights{display:grid;grid-template-columns:1fr 1fr;gap:10px}.v30-insight{padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff}.v30-insight .label{font-size:11px;color:var(--muted)}.v30-insight .value{font-size:19px;font-weight:800;margin-top:4px}.v30-insight small{display:block;color:var(--muted);font-size:10px;margin-top:4px;line-height:1.4}.v30-break{margin-top:12px;padding:13px;border-radius:12px;background:#f7f8fa}.v30-break strong{display:block;font-size:12px}.v30-break span{display:block;font-size:11px;color:var(--muted);margin-top:3px}.v30-table{width:100%;border-collapse:collapse}.v30-table th,.v30-table td{padding:9px 5px;border-bottom:1px solid var(--line);text-align:left;font-size:11px}.v30-table th{color:var(--muted);font-weight:700}.v30-table td:last-child,.v30-table th:last-child{text-align:right}.v30-margin-good{font-weight:800}.v30-margin-low{font-weight:800}.v30-note-box{padding:12px;border-radius:12px;background:#f8f8fa;font-size:11px;color:var(--muted);line-height:1.5}.v30-section-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.v30-section-title h2{margin:0}.v30-pill{font-size:10px;padding:5px 8px;border-radius:999px;background:#f1f2f4;color:#555;font-weight:800}.v30-mini-list{display:grid;gap:8px}.v30-mini-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.v30-mini-row:last-child{border-bottom:0}.v30-mini-row span{font-size:11px}.v30-mini-row strong{font-size:11px}.v30-forecast{font-size:11px;color:var(--muted);margin-top:8px}.v30-forecast b{color:#17191d}.v30-actions{display:flex;gap:7px;flex-wrap:wrap}.v30-actions .btn{font-size:11px;padding:7px 10px}
+@media(max-width:900px){.v30-grid{grid-template-columns:1fr}}@media(max-width:760px){.v30-insights{grid-template-columns:1fr}.v30-chart{gap:3px}.v30-bar{width:65%}.v30-chart-col strong{display:none}.v30-meta{width:100%}.v30-meta input{flex:1}.v30-section-title{flex-direction:column}}
 .dash-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px;padding:13px 15px;background:#fff;border:1px solid var(--line);border-radius:14px}.dash-toolbar strong{display:block;font-size:14px}.dash-toolbar span{display:block;color:var(--muted);font-size:12px;margin-top:2px}.dash-periods{display:flex;gap:5px;flex-wrap:wrap}.dash-periods button{border:1px solid var(--line);background:#fff;padding:8px 11px;border-radius:9px;font-size:12px;cursor:pointer}.dash-periods button.active{background:#17191d;color:#fff;border-color:#17191d}.dash-kpis .dash-kpi{min-height:126px}.dash-kpi-note{font-size:11px;color:var(--muted);margin-top:8px}.dash-kpi-note .badge{font-size:10px}.dash-grid-2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:16px}.dash-panel{padding:18px}.dash-panel .section-head{margin-bottom:12px}.dash-panel h2{font-size:17px}.dash-muted{font-size:11px;color:var(--muted);margin-top:3px}.dash-ranking-row,.dash-pay-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.dash-ranking-row:last-child,.dash-pay-row:last-child{border-bottom:0}.rank{width:26px;height:26px;border-radius:8px;background:#f2f3f5;display:grid;place-items:center;font-weight:800;font-size:12px}.rank-main{flex:1;min-width:0}.rank-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rank-main span{display:block;color:var(--muted);font-size:11px;margin-top:2px}.dash-pay-row span{flex:1}.dash-alerts{margin-top:16px}.dash-alert{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.dash-alert:last-child{border-bottom:0}.dash-alert>span{width:34px;height:34px;border-radius:10px;background:#f3f4f6;display:grid;place-items:center}.dash-alert>div{flex:1;min-width:0}.dash-alert strong{display:block;font-size:13px}.dash-alert small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.dash-alert.warning>span{background:#fff5df}.dash-alert.pink>span{background:#fde8f1}.dash-alert.good>span{background:#e8f7ef}.dash-alert .btn{padding:7px 10px;font-size:11px}.dash-kpis{margin-bottom:0}.dash-toolbar + .dash-kpis{margin-top:0}@media(max-width:760px){.dash-toolbar{align-items:flex-start;flex-direction:column}.dash-periods{width:100%}.dash-periods button{flex:1}.dash-grid-2{grid-template-columns:1fr}.dash-alert{align-items:flex-start;flex-wrap:wrap}.dash-alert .btn{margin-left:46px}}
 </style>
 </head>
@@ -407,7 +410,7 @@ const seedServices=[
 let db=JSON.parse(localStorage.getItem('graficaDB')||'null')||{services:seedServices,clients:[],quotes:[],orders:[],cash:[]};
 function save(){
  localStorage.setItem('graficaDB',JSON.stringify(db));
- try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V29',date:new Date().toISOString(),db}))}catch(e){}
+ try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V30',date:new Date().toISOString(),db}))}catch(e){}
  try{if(window.__v13CloudPersist) window.__v13CloudPersist(db)}catch(e){console.warn('Cloud save:',e)}
 
 }
@@ -447,41 +450,91 @@ function dashboard(){
  const delta=prevRevenue?((revenue-prevRevenue)/prevRevenue*100):(revenue?100:0);
  const estimatedCost=validOrders.reduce((sum,o)=>(sum+(o.items||[]).reduce((a,i)=>{const sv=db.services.find(s=>Number(s.id)===Number(i.serviceId));return a+Number(sv?.cost||0)*Number(i.qty||0)},0)),0);
  const grossProfit=revenue-estimatedCost;
+ const marginPct=revenue?(grossProfit/revenue*100):0;
  const ticket=validOrders.length?revenue/validOrders.length:0;
  const open=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status)).length;
  const ready=db.orders.filter(o=>o.status==='Pronto').length;
- const todayOrders=db.orders.filter(o=>o.date===todayStr&&o.status!=='Cancelado');
  const overdueOpen=db.orders.filter(o=>o.status!=='Entregue'&&o.status!=='Cancelado'&&o.date<todayStr);
  const serviceMap={};
- validOrders.forEach(o=>(o.items||[]).forEach(i=>{const k=i.serviceId||i.name||'outro';if(!serviceMap[k])serviceMap[k]={name:i.name||'Serviço',qty:0,revenue:0};serviceMap[k].qty+=Number(i.qty||0);serviceMap[k].revenue+=Number(i.total||0)}));
+ validOrders.forEach(o=>(o.items||[]).forEach(i=>{const k=i.serviceId||i.name||'outro';if(!serviceMap[k])serviceMap[k]={name:i.name||'Serviço',qty:0,revenue:0,cost:0};const sv=db.services.find(s=>Number(s.id)===Number(i.serviceId));serviceMap[k].qty+=Number(i.qty||0);serviceMap[k].revenue+=Number(i.total||0);serviceMap[k].cost+=Number(sv?.cost||0)*Number(i.qty||0)}));
  const topServices=Object.values(serviceMap).sort((a,b)=>b.revenue-a.revenue).slice(0,5);
- const payMap={};
- validOrders.forEach(o=>{const k=o.pay||'A pagar';payMap[k]=(payMap[k]||0)+Number(o.total||0)});
+ const profitableServices=Object.values(serviceMap).map(x=>({...x,profit:x.revenue-x.cost,margin:x.revenue?((x.revenue-x.cost)/x.revenue*100):0})).sort((a,b)=>b.profit-a.profit).slice(0,5);
+ const payMap={}; validOrders.forEach(o=>{const k=o.pay||'A pagar';payMap[k]=(payMap[k]||0)+Number(o.total||0)});
  const payRows=Object.entries(payMap).sort((a,b)=>b[1]-a[1]);
  const lowMargin=db.services.filter(s=>Number(s.price)>0&&((Number(s.price)-Number(s.cost))/Number(s.price)*100)<30);
+ const clientsMap={}; validOrders.forEach(o=>{const n=(o.client||'Balcão').trim()||'Balcão';clientsMap[n]=(clientsMap[n]||0)+Number(o.total||0)});
+ const repeatClients=Object.keys(clientsMap).filter(n=>validOrders.filter(o=>(o.client||'Balcão').trim()===n).length>1).length;
+ const fixedMonthly=Number(v12Costs?.fixed?.total||2046);
+ const monthStart=new Date(startOfDay.getFullYear(),startOfDay.getMonth(),1);
+ const dayOfMonth=startOfDay.getDate();
+ const daysInMonth=new Date(startOfDay.getFullYear(),startOfDay.getMonth()+1,0).getDate();
+ const monthOrders=db.orders.filter(o=>o.status!=='Cancelado'&&parseDate(o.date)>=monthStart&&parseDate(o.date)<=startOfDay);
+ const monthRevenue=monthOrders.reduce((a,o)=>a+Number(o.total||0),0);
+ const monthCost=monthOrders.reduce((sum,o)=>(sum+(o.items||[]).reduce((a,i)=>{const sv=db.services.find(s=>Number(s.id)===Number(i.serviceId));return a+Number(sv?.cost||0)*Number(i.qty||0)},0)),0);
+ const monthProfit=monthRevenue-monthCost;
+ const projection=dayOfMonth?monthRevenue/dayOfMonth*daysInMonth:0;
+ const monthlyGoal=Number(db.dashboardMeta||0);
+ const goalPct=monthlyGoal?Math.min(100,monthRevenue/monthlyGoal*100):0;
+ const fixedGap=monthProfit-fixedMonthly;
+ const fixedCovered=monthProfit>=fixedMonthly;
  const fmtDelta=delta===0?'Sem variação':`${delta>0?'▲':'▼'} ${Math.abs(delta).toFixed(1)}% vs. período anterior`;
  const deltaClass=delta>=0?'b-green':'b-pink';
  const topHtml=topServices.length?topServices.map((x,i)=>`<div class="dash-ranking-row"><span class="rank">${i+1}</span><div class="rank-main"><strong>${esc(x.name)}</strong><span>${x.qty} unidade(s)</span></div><strong>${money(x.revenue)}</strong></div>`).join(''):'<div class="empty">Ainda não há vendas no período.</div>';
  const payHtml=payRows.length?payRows.map(([k,v])=>`<div class="dash-pay-row"><span>${esc(k)}</span><strong>${money(v)}</strong></div>`).join(''):'<div class="empty">Sem vendas no período.</div>';
- const alertHtml=`${open?`<div class="dash-alert"><span>⏳</span><div><strong>${open} pedido(s) em aberto</strong><small>Há vendas aguardando produção ou entrega.</small></div><button class="btn secondary" onclick="render('pedidos')">Ver pedidos</button></div>`:''}${overdueOpen.length?`<div class="dash-alert warning"><span>⚠️</span><div><strong>${overdueOpen.length} pedido(s) antigo(s) em aberto</strong><small>Confira os pedidos que continuam abertos de dias anteriores.</small></div><button class="btn secondary" onclick="render('pedidos')">Conferir</button></div>`:''}${lowMargin.length?`<div class="dash-alert pink"><span>📉</span><div><strong>${lowMargin.length} serviço(s) abaixo de 30% de margem</strong><small>${esc(lowMargin.slice(0,3).map(s=>s.name).join(', '))}${lowMargin.length>3?'…':''}</small></div><button class="btn secondary" onclick="render('servicos')">Revisar</button></div>`:''}${!open&&!overdueOpen.length&&!lowMargin.length?'<div class="dash-alert good"><span>✓</span><div><strong>Operação em dia</strong><small>Nenhum alerta importante encontrado agora.</small></div></div>':''}`;
+ const profitHtml=profitableServices.length?profitableServices.map(x=>`<div class="v30-mini-row"><span>${esc(x.name)}</span><strong>${money(x.profit)}</strong></div>`).join(''):'<div class="empty">Sem dados de margem no período.</div>';
+ const alerts=[];
+ if(open)alerts.push(`<div class="dash-alert"><span>⏳</span><div><strong>${open} pedido(s) em aberto</strong><small>Há vendas aguardando produção ou entrega.</small></div><button class="btn secondary" onclick="render('pedidos')">Ver pedidos</button></div>`);
+ if(overdueOpen.length)alerts.push(`<div class="dash-alert warning"><span>⚠️</span><div><strong>${overdueOpen.length} pedido(s) antigo(s) em aberto</strong><small>Confira pedidos de dias anteriores que ainda não foram concluídos.</small></div><button class="btn secondary" onclick="render('pedidos')">Conferir</button></div>`);
+ if(lowMargin.length)alerts.push(`<div class="dash-alert pink"><span>📉</span><div><strong>${lowMargin.length} serviço(s) abaixo de 30% de margem</strong><small>${esc(lowMargin.slice(0,3).map(s=>s.name).join(', '))}${lowMargin.length>3?'…':''}</small></div><button class="btn secondary" onclick="render('servicos')">Revisar</button></div>`);
+ if(!fixedCovered && monthRevenue>0)alerts.push(`<div class="dash-alert warning"><span>🎯</span><div><strong>Custos fixos ainda não cobertos</strong><small>Faltam ${money(Math.abs(fixedGap))} de resultado estimado para superar a base mensal de ${money(fixedMonthly)}.</small></div></div>`);
+ if(!alerts.length)alerts.push('<div class="dash-alert good"><span>✓</span><div><strong>Operação em dia</strong><small>Nenhum alerta estratégico importante encontrado agora.</small></div></div>');
+ // Chart: daily valid revenue for selected period, capped to 14 points for readability.
+ let chartStart=new Date(start), chartEnd=new Date(end);
+ if(period==='all'){chartEnd=new Date(startOfDay);chartStart=new Date(startOfDay);chartStart.setDate(chartStart.getDate()-13);}
+ const chartDays=[]; for(let d=new Date(chartStart);d<=chartEnd;d.setDate(d.getDate()+1)) chartDays.push(new Date(d));
+ const chartPoints=chartDays.length>14?chartDays.slice(-14):chartDays;
+ const chartVals=chartPoints.map(d=>{const key=d.toISOString().slice(0,10);return validOrders.filter(o=>o.date===key).reduce((a,o)=>a+Number(o.total||0),0)});
+ const chartMax=Math.max(1,...chartVals);
+ const chartHtml=chartPoints.length?chartPoints.map((d,i)=>`<div class="v30-chart-col"><div class="v30-bar-wrap"><div class="v30-bar" title="${money(chartVals[i])}" style="height:${Math.max(3,chartVals[i]/chartMax*100)}%"></div></div><strong>${chartVals[i]?money(chartVals[i]).replace('R$','R$ '):'R$ 0'}</strong><small>${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</small></div>`).join(''):'<div class="v30-chart-empty">Sem dados para o gráfico.</div>';
+ const goalBlock=monthlyGoal?`<div class="v30-goal"><div class="v30-goal-top"><div><span>Meta mensal</span><strong>${money(monthlyGoal)}</strong></div><span>${goalPct.toFixed(0)}% atingida</span></div><div class="v30-progress"><span style="width:${goalPct}%"></span></div><div class="v30-forecast">Projeção atual: <b>${money(projection)}</b>${projection>=monthlyGoal?' • tendência de atingir a meta':' • abaixo da meta no ritmo atual'}</div></div>`:`<div class="v30-goal"><div class="v30-goal-top"><div><span>Meta mensal</span><strong>Não definida</strong></div><button class="btn secondary" onclick="setDashGoal()">Definir meta</button></div><div class="v30-note-box" style="margin-top:10px">Defina uma meta de faturamento para acompanhar o ritmo da gráfica durante o mês.</div></div>`;
  document.getElementById('page').innerHTML=`
- <div class="dash-toolbar"><div><strong>Visão gerencial</strong><span>${label}</span></div><div class="dash-periods"><button class="${period==='today'?'active':''}" onclick="setDashPeriod('today')">Hoje</button><button class="${period==='7'?'active':''}" onclick="setDashPeriod('7')">7 dias</button><button class="${period==='month'?'active':''}" onclick="setDashPeriod('month')">Este mês</button><button class="${period==='all'?'active':''}" onclick="setDashPeriod('all')">Tudo</button></div></div>
+ <div class="dash-toolbar"><div><strong>Visão estratégica</strong><span>${label}</span></div><div class="dash-periods"><button class="${period==='today'?'active':''}" onclick="setDashPeriod('today')">Hoje</button><button class="${period==='7'?'active':''}" onclick="setDashPeriod('7')">7 dias</button><button class="${period==='month'?'active':''}" onclick="setDashPeriod('month')">Este mês</button><button class="${period==='all'?'active':''}" onclick="setDashPeriod('all')">Tudo</button></div></div>
  <div class="grid stats dash-kpis">
   <div class="card stat dash-kpi"><div class="label">Faturamento</div><div class="value">${money(revenue)}</div><div class="dash-kpi-note"><span class="badge ${deltaClass}">${fmtDelta}</span></div></div>
-  <div class="card stat dash-kpi"><div class="label">Lucro estimado</div><div class="value">${money(grossProfit)}</div><div class="dash-kpi-note">Venda − custos cadastrados</div></div>
-  <div class="card stat dash-kpi"><div class="label">Ticket médio</div><div class="value">${money(ticket)}</div><div class="dash-kpi-note">${validOrders.length} venda(s) válida(s)</div></div>
-  <div class="card stat dash-kpi"><div class="label">Em aberto</div><div class="value">${open}</div><div class="dash-kpi-note">${ready} pronto(s) para entregar</div></div>
+  <div class="card stat dash-kpi"><div class="label">Lucro estimado</div><div class="value">${money(grossProfit)}</div><div class="dash-kpi-note">Margem estimada: ${marginPct.toFixed(1)}%</div></div>
+  <div class="card stat dash-kpi"><div class="label">Ticket médio</div><div class="value">${money(ticket)}</div><div class="dash-kpi-note">${validOrders.length} venda(s) válida(s) • ${repeatClients} cliente(s) recorrente(s)</div></div>
+  <div class="card stat dash-kpi"><div class="label">Resultado após fixos*</div><div class="value">${period==='month'?money(monthProfit-fixedMonthly):'—'}</div><div class="dash-kpi-note">Base mensal: ${money(fixedMonthly)}</div></div>
+ </div>
+ <div class="v30-grid">
+  <div class="card dash-panel"><div class="v30-section-title"><div><h2>Ritmo de faturamento</h2><div class="dash-muted">Vendas válidas por dia • últimos 14 dias do período</div></div><span class="v30-pill">${money(revenue)} no período</span></div><div class="v30-chart">${chartHtml}</div></div>
+  <div class="card dash-panel"><div class="v30-section-title"><div><h2>Meta e projeção</h2><div class="dash-muted">Acompanhamento mensal</div></div><button class="btn secondary" onclick="setDashGoal()">${monthlyGoal?'Editar meta':'Definir meta'}</button></div><div style="margin-top:12px">${goalBlock}</div></div>
+ </div>
+ <div class="v30-grid">
+  <div class="card dash-panel"><div class="v30-section-title"><div><h2>Saúde financeira</h2><div class="dash-muted">Indicadores para decisão</div></div></div><div class="v30-insights" style="margin-top:12px">
+    <div class="v30-insight"><div class="label">Margem estimada</div><div class="value">${marginPct.toFixed(1)}%</div><small>${marginPct>=30?'Acima da referência de 30%.':'Abaixo da referência de 30%.'}</small></div>
+    <div class="v30-insight"><div class="label">Projeção do mês</div><div class="value">${money(projection)}</div><small>Ritmo médio até hoje: ${money(dayOfMonth?monthRevenue/dayOfMonth:0)}/dia.</small></div>
+    <div class="v30-insight"><div class="label">Fixos mensais</div><div class="value">${money(fixedMonthly)}</div><small>${fixedCovered?'Cobertos pelo resultado estimado do mês.':'Ainda não cobertos pelo resultado estimado do mês.'}</small></div>
+    <div class="v30-insight"><div class="label">Lucro após fixos</div><div class="value">${money(monthProfit-fixedMonthly)}</div><small>Estimativa acumulada no mês atual.</small></div>
+   </div><div class="v30-break"><strong>${fixedCovered?'Ponto de equilíbrio superado':'Ponto de equilíbrio em andamento'}</strong><span>${fixedCovered?'O lucro estimado do mês já cobre a base de custos fixos cadastrada.':'Use o faturamento e a margem para aumentar o resultado até cobrir os custos fixos.'}</span></div></div>
+  <div class="card dash-panel"><div class="v30-section-title"><div><h2>Serviços mais lucrativos</h2><div class="dash-muted">Lucro estimado no período</div></div><button class="btn secondary" onclick="render('servicos')">Revisar preços</button></div><div class="v30-mini-list" style="margin-top:10px">${profitHtml}</div></div>
  </div>
  <div class="dash-grid-2">
   <div class="card dash-panel"><div class="section-head"><div><h2>Serviços mais vendidos</h2><div class="dash-muted">Ranking por faturamento no período</div></div><button class="btn secondary" onclick="render('servicos')">Tabela de preços</button></div><div class="dash-ranking">${topHtml}</div></div>
   <div class="card dash-panel"><div class="section-head"><div><h2>Formas de pagamento</h2><div class="dash-muted">Distribuição do faturamento</div></div></div><div class="dash-payments">${payHtml}</div></div>
  </div>
- <div class="card dash-panel dash-alerts"><div class="section-head"><div><h2>Alertas e ações</h2><div class="dash-muted">Pontos que merecem atenção</div></div></div>${alertHtml}</div>
- <div class="quick-sales">
-  <div class="quick-sale-card sale"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🛒</div><div><h3>Registrar uma venda</h3><p>Venda feita no balcão? Lance aqui rapidamente.</p></div></div><button class="btn primary" onclick="newOrder()">+ Nova venda</button></div>
-  <div class="quick-sale-card quote"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🧾</div><div><h3>Criar orçamento</h3><p>Monte um orçamento para enviar ao cliente.</p></div></div><button class="btn pink" onclick="newQuote()">Novo orçamento</button></div>
- </div>
- <div class="section card dashboard-sales"><div class="section-head"><div><h2>Vendas recentes</h2><div class="sales-count">${todayOrders.length} venda(s) hoje • ${validOrders.length} no período</div></div><button class="btn secondary" onclick="render('pedidos')">Ver vendas</button></div>${orderTable(db.orders.filter(o=>o.status!=='Cancelado').slice().sort((a,b)=>b.id-a.id).slice(0,8))}</div>`;
+ <div class="card dash-panel dash-alerts"><div class="section-head"><div><h2>Alertas e ações</h2><div class="dash-muted">Pontos que merecem atenção</div></div></div>${alerts.join('')}</div>
+ <div class="quick-sales"><div class="quick-sale-card sale"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🛒</div><div><h3>Registrar uma venda</h3><p>Venda feita no balcão? Lance aqui rapidamente.</p></div></div><button class="btn primary" onclick="newOrder()">+ Nova venda</button></div><div class="quick-sale-card quote"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🧾</div><div><h3>Criar orçamento</h3><p>Monte um orçamento para enviar ao cliente.</p></div></div><button class="btn pink" onclick="newQuote()">Novo orçamento</button></div></div>
+ <div class="section card dashboard-sales"><div class="section-head"><div><h2>Vendas recentes</h2><div class="sales-count">${db.orders.filter(o=>o.date===todayStr&&o.status!=='Cancelado').length} venda(s) hoje • ${validOrders.length} no período</div></div><button class="btn secondary" onclick="render('pedidos')">Ver vendas</button></div>${orderTable(db.orders.filter(o=>o.status!=='Cancelado').slice().sort((a,b)=>b.id-a.id).slice(0,8))}</div>
+ <div class="v30-note-box" style="margin-top:12px">* Resultado após fixos é uma estimativa gerencial: lucro estimado das vendas do mês menos os custos fixos cadastrados. Não substitui um fechamento contábil.</div>`;
+}
+function setDashGoal(){
+ const current=Number(db.dashboardMeta||0);
+ openModal('Meta mensal de faturamento',`<div class="field"><label>Meta de faturamento (R$)</label><input id="dashGoalInput" type="number" min="0" step="0.01" value="${current||''}" placeholder="Ex.: 5000"></div><div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveDashGoal()">Salvar meta</button></div>`);
+ setTimeout(()=>document.getElementById('dashGoalInput')?.focus(),50);
+}
+function saveDashGoal(){
+ const v=Math.max(0,Number(document.getElementById('dashGoalInput')?.value||0));
+ db.dashboardMeta=v;save();closeModal();render('dashboard');toast(v?'Meta mensal salva.':'Meta mensal removida.');
 }
 function setDashPeriod(p){window.__dashPeriod=p;render('dashboard')}
 function orderTable(arr){
@@ -1328,7 +1381,7 @@ setTimeout(v4Render,500);
         if(remote && typeof remote==='object' && (remote.services||remote.clients||remote.quotes||remote.orders||remote.cash)){
           db=remote;
           localStorage.setItem('graficaDB',JSON.stringify(db));
-          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V29',date:new Date().toISOString(),db}))}catch(e){}
+          try{localStorage.setItem('graficaDB_backup_auto',JSON.stringify({app:'Ideias Print',version:'V30',date:new Date().toISOString(),db}))}catch(e){}
           render();
           setMsg('Dados carregados da nuvem.',true);
           return true;
