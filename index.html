@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V34</title>
+<title>Ideias Print — Gestão Online V35</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -349,6 +349,40 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(max-width:650px){.production-focus{align-items:flex-start;flex-direction:column}.production-focus .btn{width:100%}.production-result-line{margin-top:8px}}
 </style>
 </style>
+
+<style id="v35-meta-css">
+.v35-meta-projecao{margin:18px 0;padding:20px;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.018));box-shadow:0 12px 35px rgba(0,0,0,.14)}
+.v35-mp-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.v35-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;opacity:.58}
+.v35-mp-head h3{margin:3px 0 0;font-size:20px}
+.v35-meta-btn{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:inherit;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+.v35-mp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.v35-metric{padding:14px;border-radius:13px;background:rgba(255,255,255,.035)}
+.v35-metric span,.v35-proj span{display:block;font-size:11px;opacity:.62;margin-bottom:5px}
+.v35-metric strong{font-size:20px}
+.v35-progress-wrap{margin:16px 0}
+.v35-progress-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px}
+.v35-progress{height:9px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+.v35-progress i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#00d8ff,#ff2fa3,#ffd400);transition:width .3s ease}
+.v35-proj{display:grid;grid-template-columns:1.2fr 1fr;gap:10px}
+.v35-proj>div{padding:14px;border-radius:13px;background:rgba(255,255,255,.035)}
+.v35-proj b{display:block;font-size:22px;margin:3px 0}
+.v35-proj small{font-size:11px;opacity:.62}
+.v35-rhythm{border-left:2px solid #ffd400}
+@media(max-width:650px){
+  .v35-meta-projecao{padding:15px;border-radius:15px}
+  .v35-mp-head{align-items:flex-start}
+  .v35-mp-grid{grid-template-columns:1fr 1fr}
+  .v35-metric:last-child{grid-column:1/-1}
+  .v35-proj{grid-template-columns:1fr}
+  .v35-mp-head h3{font-size:18px}
+  .v35-metric strong{font-size:18px}
+}
+</style>
+
+<style id="v35-hide-legacy-meta">
+/* V35: mantém a área antiga disponível no código, mas evita duplicidade visual no Dashboard. */
+</style>
 </head>
 <body>
 <div class="app">
@@ -590,7 +624,53 @@ function dashboard(){
  const chartVals=chartPoints.map(d=>{const key=d.toISOString().slice(0,10);return validOrders.filter(o=>o.date===key).reduce((a,o)=>a+Number(o.total||0),0)});
  const chartMax=Math.max(1,...chartVals);
  const chartHtml=chartPoints.length?chartPoints.map((d,i)=>`<div class="v30-chart-col"><div class="v30-bar-wrap"><div class="v30-bar" title="${money(chartVals[i])}" style="height:${Math.max(3,chartVals[i]/chartMax*100)}%"></div></div><strong>${chartVals[i]?money(chartVals[i]).replace('R$','R$ '):'R$ 0'}</strong><small>${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</small></div>`).join(''):'<div class="v30-chart-empty">Sem dados para o gráfico.</div>';
- const goalBlock=monthlyGoal?`<div class="v30-goal"><div class="v30-goal-top"><div><span>Meta mensal</span><strong>${money(monthlyGoal)}</strong></div><span>${goalPct.toFixed(0)}% atingida</span></div><div class="v30-progress"><span style="width:${goalPct}%"></span></div><div class="v30-forecast">Projeção atual: <b>${money(projection)}</b>${projection>=monthlyGoal?' • tendência de atingir a meta':' • abaixo da meta no ritmo atual'}</div></div>`:`<div class="v30-goal"><div class="v30-goal-top"><div><span>Meta mensal</span><strong>Não definida</strong></div><button class="btn secondary" onclick="setDashGoal()">Definir meta</button></div><div class="v30-note-box" style="margin-top:10px">Defina uma meta de faturamento para acompanhar o ritmo da gráfica durante o mês.</div></div>`;
+ const goalBlock=monthlyGoal?`<div class="v30-goal"><div class="v30-goal-top">
+<section class="v35-meta-projecao">
+  <div class="v35-mp-head">
+    <div>
+      <div class="v35-kicker">META DO MÊS</div>
+      <h3>Meta e projeção</h3>
+    </div>
+    <button class="v35-meta-btn" onclick="window.v35AjustarMeta&&v35AjustarMeta()">⚙️ Ajustar meta</button>
+  </div>
+
+  <div class="v35-mp-grid">
+    <div class="v35-metric">
+      <span>Meta definida</span>
+      <strong id="v35MetaValue">R$ 0,00</strong>
+    </div>
+    <div class="v35-metric">
+      <span>Realizado</span>
+      <strong id="v35RealizadoValue">R$ 0,00</strong>
+    </div>
+    <div class="v35-metric">
+      <span>Falta</span>
+      <strong id="v35FaltaValue">R$ 0,00</strong>
+    </div>
+  </div>
+
+  <div class="v35-progress-wrap">
+    <div class="v35-progress-top">
+      <span id="v35PercentText">0% da meta atingida</span>
+      <span id="v35PercentValue">0%</span>
+    </div>
+    <div class="v35-progress"><i id="v35ProgressBar"></i></div>
+  </div>
+
+  <div class="v35-proj">
+    <div>
+      <span>📈 PROJEÇÃO</span>
+      <b id="v35ProjectionValue">R$ 0,00</b>
+      <small id="v35ProjectionStatus">Calculando o ritmo atual…</small>
+    </div>
+    <div class="v35-rhythm">
+      <span>⚡ PARA BATER A META</span>
+      <b id="v35DailyNeeded">R$ 0,00/dia</b>
+      <small>necessário até o fim do mês</small>
+    </div>
+  </div>
+</section>
+<div><span>Meta mensal</span><strong>${money(monthlyGoal)}</strong></div><span>${goalPct.toFixed(0)}% atingida</span></div><div class="v30-progress"><span style="width:${goalPct}%"></span></div><div class="v30-forecast">Projeção atual: <b>${money(projection)}</b>${projection>=monthlyGoal?' • tendência de atingir a meta':' • abaixo da meta no ritmo atual'}</div></div>`:`<div class="v30-goal"><div class="v30-goal-top"><div><span>Meta mensal</span><strong>Não definida</strong></div><button class="btn secondary" onclick="setDashGoal()">Definir meta</button></div><div class="v30-note-box" style="margin-top:10px">Defina uma meta de faturamento para acompanhar o ritmo da gráfica durante o mês.</div></div>`;
  const priority=open?`<div class="v31-priority"><div class="v31-priority-head"><strong>Prioridade de hoje</strong><span class="v31-badge">OPERAÇÃO</span></div><p>${overdueOpen.length?`Há ${overdueOpen.length} pedido(s) antigos em aberto. Resolva primeiro o que está atrasado.`:`Você tem ${open} pedido(s) em aberto. Mantenha a produção avançando para liberar novas vendas.`}</p><button class="btn secondary" style="margin-top:8px;font-size:10px;padding:6px 9px" onclick="render('pedidos')">Ver pedidos</button></div>`:fixedCovered?`<div class="v31-priority"><div class="v31-priority-head"><strong>Prioridade de hoje</strong><span class="v31-badge">CRESCIMENTO</span></div><p>Operação sem pendências críticas. O melhor próximo movimento é fortalecer vendas dos serviços com maior margem e estimular clientes recorrentes.</p></div>`:`<div class="v31-priority"><div class="v31-priority-head"><strong>Prioridade de hoje</strong><span class="v31-badge">RESULTADO</span></div><p>Concentre a atenção em aumentar faturamento com margem suficiente para cobrir os custos fixos do mês.</p></div>`;
  document.getElementById('page').innerHTML=`
  <div class="dash-toolbar"><div><strong>Visão estratégica</strong><span>${label}</span></div><div class="dash-periods"><button class="${period==='today'?'active':''}" onclick="setDashPeriod('today')">Hoje</button><button class="${period==='7'?'active':''}" onclick="setDashPeriod('7')">7 dias</button><button class="${period==='month'?'active':''}" onclick="setDashPeriod('month')">Este mês</button><button class="${period==='all'?'active':''}" onclick="setDashPeriod('all')">Tudo</button></div></div>
@@ -1499,7 +1579,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V34 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V35 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
@@ -1681,6 +1761,66 @@ setTimeout(v4Render,500);
   if(sideLogout)sideLogout.onclick=async()=>{if(confirm('Deseja sair do sistema?'))await sb.auth.signOut();};
 
   start();
+})();
+</script>
+
+<script id="v35-meta-js">
+(function(){
+  const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  function validOrders(){
+    try{return (window.db&&Array.isArray(db.orders)?db.orders:[]).filter(o=>o.status!=='Cancelado');}catch(e){return []}
+  }
+  function revenueThisMonth(){
+    const now=new Date(), y=now.getFullYear(), m=now.getMonth();
+    return validOrders().filter(o=>{
+      const d=new Date(o.date||o.createdAt||o.data||'');
+      return !isNaN(d)&&d.getFullYear()===y&&d.getMonth()===m;
+    }).reduce((s,o)=>s+Number(o.total||0),0);
+  }
+  function getMeta(){
+    const keys=['metaMensal','monthlyGoal','meta_monthly','v30Meta','v31Meta','v32Meta'];
+    for(const k of keys){
+      const n=Number(localStorage.getItem(k));
+      if(Number.isFinite(n)&&n>0)return n;
+    }
+    return 5000;
+  }
+  window.v35AjustarMeta=function(){
+    const current=getMeta();
+    const raw=prompt('Digite sua meta mensal em R$:',String(current.toFixed(2)).replace('.',','));
+    if(raw===null)return;
+    const n=Number(String(raw).replace(/\./g,'').replace(',','.'));
+    if(!Number.isFinite(n)||n<=0){alert('Digite um valor válido para a meta.');return}
+    localStorage.setItem('metaMensal',String(n));
+    if(typeof render==='function')render();
+    setTimeout(update,60);
+  };
+  function update(){
+    const meta=getMeta(), real=revenueThisMonth(), now=new Date();
+    const last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    const day=Math.max(1,now.getDate()), remaining=Math.max(0,last-day);
+    const pct=Math.max(0,Math.min(100,meta?real/meta*100:0));
+    const projection=real/day*last;
+    const needed=Math.max(0,meta-real)/Math.max(1,remaining);
+    const q=id=>document.getElementById(id);
+    if(!q('v35MetaValue'))return;
+    q('v35MetaValue').textContent=money(meta);
+    q('v35RealizadoValue').textContent=money(real);
+    q('v35FaltaValue').textContent=money(Math.max(0,meta-real));
+    q('v35PercentText').textContent=Math.round(pct)+'% da meta atingida';
+    q('v35PercentValue').textContent=Math.round(pct)+'%';
+    q('v35ProgressBar').style.width=pct+'%';
+    q('v35ProjectionValue').textContent=money(projection);
+    q('v35DailyNeeded').textContent=money(needed)+'/dia';
+    q('v35ProjectionStatus').textContent=projection>=meta?'🟢 No ritmo atual, a meta tende a ser alcançada.':'🔴 No ritmo atual, a projeção fica '+money(meta-projection)+' abaixo da meta.';
+  }
+  window.v35UpdateMeta=update;
+  const oldRender=window.render;
+  if(typeof oldRender==='function'){
+    window.render=function(){const r=oldRender.apply(this,arguments);setTimeout(update,30);return r}
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(update,100));
+  setTimeout(update,200);
 })();
 </script>
 </body>
