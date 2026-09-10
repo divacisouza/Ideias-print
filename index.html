@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V40</title>
+<title>Ideias Print — Gestão Online V41</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -431,6 +431,28 @@ html,body{max-width:100%;overflow-x:hidden}
   .v39-main-card{padding:15px 14px 17px;min-height:108px}
   .v39-main-card .label{font-size:16px !important}
   .v39-main-card .value{font-size:25px !important}
+}
+</style>
+
+
+<style id="v41-production-intelligence">
+/* V41 — Produção Inteligente */
+.v41-queue{margin:14px 0;padding:15px 16px;border:1px solid var(--line);border-radius:15px;background:#fff}
+.v41-queue-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.v41-queue-head strong{font-size:15px}
+.v41-now{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px;border-radius:12px;background:#f7f8fa;border:1px solid #eceef1}
+.v41-now-main{min-width:0}
+.v41-now-kicker{font-size:9px;font-weight:900;letter-spacing:.09em;color:var(--muted)}
+.v41-now-title{font-size:14px;font-weight:900;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v41-now-meta{font-size:10px;color:var(--muted);margin-top:4px}
+.v41-next{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.v41-next-item{padding:9px 10px;border-top:1px solid var(--line);min-width:0}
+.v41-next-item b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v41-next-item span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+@media(max-width:650px){
+  .v41-now{align-items:flex-start;flex-direction:column}
+  .v41-now .btn{width:100%}
+  .v41-next{grid-template-columns:1fr}
 }
 </style>
 
@@ -1532,7 +1554,18 @@ window.production=function(){
   const cols=['Em produção','Pronto'];
   const focus=overdue[0]||dueToday[0]||active[0];
   root.innerHTML=`<div class="page-header"><h1>🏭 Produção</h1><p>Uma fila simples para saber o que fazer primeiro e o que já pode ser entregue.</p></div>
-  ${focus?`<div class="production-focus ${overdue.length?'danger':dueToday.length?'warning':''}"><div><span>PRIORIDADE AGORA</span><strong>#${focus.id} — ${esc(focus.client||'Balcão')}</strong><small>${focus.dueDate&&focus.dueDate<todayStr?'Prazo vencido. Resolva este pedido primeiro.':focus.dueDate===todayStr?'Prazo para hoje. Priorize antes dos demais.':'Próximo pedido da fila.'}</small></div><button class="btn ${overdue.length?'danger':'primary'}" onclick="editOrder(${focus.id})">Abrir pedido</button></div>`:''}
+  ${focus?`<div class="v41-queue">
+    <div class="v41-queue-head"><strong>🎯 Prioridade agora</strong><span class="badge">${overdue.length?'Atrasado':dueToday.length?'Hoje':'Próximo'}</span></div>
+    <div class="v41-now">
+      <div class="v41-now-main">
+        <div class="v41-now-kicker">PEDIDO #${focus.id}</div>
+        <div class="v41-now-title">${esc(focus.client||'Balcão')}</div>
+        <div class="v41-now-meta">${focus.dueDate&&focus.dueDate<todayStr?'Prazo vencido':focus.dueDate===todayStr?'Entrega hoje':focus.dueDate?'Prazo '+escDate(focus.dueDate):'Sem prazo'} · ${focus.status}</div>
+      </div>
+      <button class="btn ${overdue.length?'danger':'primary'}" onclick="editOrder(${focus.id})">Abrir pedido</button>
+    </div>
+    ${active.filter(o=>o.id!==focus.id).sort((a,b)=>priority(a)-priority(b)||(a.dueDate||'9999').localeCompare(b.dueDate||'9999')||Number(a.id)-Number(b.id)).slice(0,2).map(o=>`<div class="v41-next-item"><b>#${o.id} — ${esc(o.client||'Balcão')}</b><span>${o.dueDate&&o.dueDate<todayStr?'Atrasado':o.dueDate===todayStr?'Hoje':o.dueDate?'Prazo '+escDate(o.dueDate):'Sem prazo'} · ${o.status}</span></div>`).join('')}
+  </div>`:''}
   <div class="production-kpis">
     <button class="production-kpi" onclick="window.__prodStatus='Em produção';production()"><span>Em produção</span><strong>${active.filter(o=>o.status==='Em produção').length}</strong></button>
     <button class="production-kpi" onclick="window.__prodStatus='Pronto';production()"><span>Prontos</span><strong>${ready.length}</strong></button>
@@ -1648,7 +1681,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V40 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V41 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
