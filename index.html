@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V38</title>
+<title>Ideias Print — Gestão Online V39</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -391,7 +391,13 @@ html,body{max-width:100%;overflow-x:hidden}
 .v37-result{display:grid;grid-template-columns:1.2fr 1fr;gap:9px;margin-top:10px}.v37-result>div{padding:13px;border-radius:13px;background:rgba(255,255,255,.035)}.v37-result span{display:block;font-size:11px;opacity:.62}.v37-result b{display:block;font-size:22px;margin-top:3px}
 .v37-list{margin-top:12px;display:grid;gap:7px}.v37-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;background:rgba(255,255,255,.03)}.v37-row strong{font-size:12px}.v37-row small{display:block;opacity:.55;margin-top:2px}.v37-positive,.v37-negative{font-weight:800}
 @media(max-width:650px){.v37-caixa{padding:14px;border-radius:15px}.v37-grid{grid-template-columns:1fr 1fr}.v37-result{grid-template-columns:1fr}.v37-card b{font-size:18px}.v37-head{align-items:flex-start}}
+
+<style id="v39-caixa-organizado">
+.v39-caixa{margin:4px 0 18px}.v39-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}.v39-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--muted)}.v39-head h2{margin:3px 0 0;font-size:22px}.v39-period{font-size:11px;color:var(--muted);white-space:nowrap}.v39-main{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.v39-main-card{padding:17px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 5px 18px rgba(0,0,0,.035)}.v39-main-card .label{font-size:11px;color:var(--muted)}.v39-main-card .value{font-size:25px;font-weight:850;margin-top:5px;letter-spacing:-.02em}.v39-main-card .sub{font-size:10px;color:var(--muted);margin-top:4px}.v39-main-card.saldo{background:linear-gradient(145deg,#fff,#f7fbfc)}.v39-strip{display:grid;grid-template-columns:1fr 1.2fr 1.2fr;gap:10px;margin-top:10px}.v39-strip-card{min-width:0;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:#f8f9fa}.v39-strip-card span{display:block;font-size:10px;color:var(--muted)}.v39-strip-card b{display:block;font-size:14px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v39-strip-card small{display:block;font-size:9px;color:var(--muted);margin-top:2px}.v39-section-title{margin:18px 0 8px}.v39-section-title h2{margin:0;font-size:17px}.v39-section-title p{margin:3px 0 0;font-size:11px;color:var(--muted)}
+@media(max-width:700px){.v39-head{align-items:flex-start}.v39-head h2{font-size:20px}.v39-main{grid-template-columns:1fr 1fr}.v39-main-card.saldo{grid-column:1/-1}.v39-main-card .value{font-size:22px}.v39-strip{grid-template-columns:1fr 1fr}.v39-strip-card:last-child{grid-column:1/-1}}
+@media(max-width:430px){.v39-main{gap:8px}.v39-main-card{padding:13px}.v39-main-card .value{font-size:20px}.v39-strip{gap:8px}.v39-strip-card{padding:10px}.v39-strip-card b{font-size:13px}}
 </style>
+
 </head>
 <body>
 <div class="app">
@@ -1172,18 +1178,28 @@ function cash(){
  let start='';if(p.period==='today')start=today();else if(p.period==='7'){const d=new Date();d.setDate(d.getDate()-6);start=d.toISOString().slice(0,10)}else if(p.period==='month')start=today().slice(0,8)+'01';
  const matches=x=>{if(p.type!=='all'&&x.type!==p.type)return false;if(start&&x.date<start)return false;if(p.search){const q=p.search.toLowerCase();return (`${x.desc||''} ${x.method||''} ${x.date||''}`).toLowerCase().includes(q)}return true};
  const rows=valid.filter(matches).slice().reverse(),inSum=valid.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value),0),outSum=valid.filter(x=>x.type==='saida').reduce((a,x)=>a+Number(x.value),0),balance=inSum-outSum,periodIn=valid.filter(x=>matches(x)&&x.type==='entrada').reduce((a,x)=>a+Number(x.value),0),periodOut=valid.filter(x=>matches(x)&&x.type==='saida').reduce((a,x)=>a+Number(x.value),0),canceledSum=canceled.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value),0);
- const now=new Date(),cy=now.getFullYear(),cm=now.getMonth(),monthRows=valid.filter(x=>{const d=new Date(x.date||'');return !isNaN(d)&&d.getFullYear()===cy&&d.getMonth()===cm}),monthIn=monthRows.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value||0),0),monthOut=monthRows.filter(x=>x.type==='saida').reduce((a,x)=>a+Number(x.value||0),0),monthBalance=monthIn-monthOut,methods={};monthRows.filter(x=>x.type==='entrada').forEach(x=>{const k=String(x.method||x.paymentMethod||'Outro');methods[k]=(methods[k]||0)+Number(x.value||0)});const topMethod=Object.entries(methods).sort((a,b)=>b[1]-a[1])[0];
+ const parseLocalDate=x=>{const [y,m,d]=String(x||'').split('-').map(Number);return new Date(y||1970,(m||1)-1,d||1)};
+ const now=new Date(),cy=now.getFullYear(),cm=now.getMonth(),monthRows=valid.filter(x=>{const d=parseLocalDate(x.date);return d.getFullYear()===cy&&d.getMonth()===cm}),monthIn=monthRows.filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value||0),0),monthOut=monthRows.filter(x=>x.type==='saida').reduce((a,x)=>a+Number(x.value||0),0),monthBalance=monthIn-monthOut,methods={};
+ monthRows.filter(x=>x.type==='entrada').forEach(x=>{const k=String(x.method||x.paymentMethod||'Outro');methods[k]=(methods[k]||0)+Number(x.value||0)});
+ const topMethod=Object.entries(methods).sort((a,b)=>b[1]-a[1])[0];
  document.getElementById('page').innerHTML=`
- <section class="v37-caixa"><div class="v37-head"><div><div class="v37-kicker">VISÃO FINANCEIRA</div><h3>Caixa resumido</h3></div><div class="v37-period">Este mês</div></div>
- <div class="v37-grid"><div class="v37-card"><span>Entrou</span><b>${money(monthIn)}</b><div class="v37-sub">entradas válidas</div></div><div class="v37-card"><span>Saiu</span><b>${money(monthOut)}</b><div class="v37-sub">despesas registradas</div></div><div class="v37-card"><span>Saldo</span><b class="${monthBalance>=0?'cash-net-positive':'cash-net-negative'}">${money(monthBalance)}</b><div class="v37-sub">resultado do período</div></div><div class="v37-card"><span>Movimentos</span><b>${monthRows.length}</b><div class="v37-sub">lançamentos válidos</div></div></div>
- <div class="v37-result"><div><span>📊 Resultado do mês</span><b class="${monthBalance>=0?'cash-net-positive':'cash-net-negative'}">${money(monthBalance)}</b></div><div><span>💳 Principal recebimento</span><b>${topMethod?esc(topMethod[0])+' · '+money(topMethod[1]):'—'}</b></div></div>
- ${monthRows.length?`<div class="v37-list">${monthRows.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5).map(x=>`<div class="v37-row"><div><strong>${esc(x.desc||'Movimento')}</strong><small>${esc(x.method||x.paymentMethod||'')}</small></div><span class="${x.type==='entrada'?'v37-positive':'v37-negative'}">${x.type==='entrada'?'+':'−'} ${money(x.value)}</span></div>`).join('')}</div>`:'<div class="v37-row" style="margin-top:12px"><small>Nenhum movimento válido neste mês.</small></div>'}
+ <section class="v39-caixa">
+   <div class="v39-head"><div><div class="v39-kicker">VISÃO FINANCEIRA</div><h2>Caixa</h2></div><div class="v39-period">Resumo de ${String(now.getMonth()+1).padStart(2,'0')}/${cy}</div></div>
+   <div class="v39-main">
+     <div class="v39-main-card"><div class="label">💰 Entrou</div><div class="value">${money(monthIn)}</div><div class="sub">entradas válidas no mês</div></div>
+     <div class="v39-main-card"><div class="label">💸 Saiu</div><div class="value">${money(monthOut)}</div><div class="sub">saídas registradas no mês</div></div>
+     <div class="v39-main-card saldo"><div class="label">🧾 Saldo</div><div class="value ${monthBalance>=0?'cash-net-positive':'cash-net-negative'}">${money(monthBalance)}</div><div class="sub">entradas − saídas</div></div>
+   </div>
+   <div class="v39-strip">
+     <div class="v39-strip-card"><span>Movimentos</span><b>${monthRows.length}</b><small>lançamentos válidos</small></div>
+     <div class="v39-strip-card"><span>Resultado do mês</span><b class="${monthBalance>=0?'cash-net-positive':'cash-net-negative'}">${money(monthBalance)}</b><small>resultado de caixa</small></div>
+     <div class="v39-strip-card"><span>Principal recebimento</span><b>${topMethod?esc(topMethod[0])+' · '+money(topMethod[1]):'—'}</b><small>por método de entrada</small></div>
+   </div>
  </section>
- <div class="grid stats cash-summary"><div class="card stat"><div class="label">Entradas válidas</div><div class="value">${money(inSum)}</div><div class="cash-note">No período: ${money(periodIn)}</div></div><div class="card stat"><div class="label">Total de saídas</div><div class="value">${money(outSum)}</div><div class="cash-note">No período: ${money(periodOut)}</div></div><div class="card stat"><div class="label">Saldo atual</div><div class="value ${balance>=0?'cash-net-positive':'cash-net-negative'}">${money(balance)}</div><div class="cash-note">Entradas válidas − saídas</div></div><div class="card stat"><div class="label">Cancelamentos</div><div class="value">${money(canceledSum)}</div><div class="cash-note">Não contabilizados no saldo</div></div></div>
+ <div class="v39-section-title"><h2>Movimentações</h2><p>${rows.length} lançamento(s) encontrado(s) com o filtro atual.</p></div>
  <div class="cash-toolbar"><input id="cashSearch" placeholder="Buscar descrição, método ou data..." value="${esc(p.search)}" oninput="cashFilter()"><select id="cashPeriod" onchange="cashFilter()"><option value="all" ${p.period==='all'?'selected':''}>Todo o período</option><option value="today" ${p.period==='today'?'selected':''}>Hoje</option><option value="7" ${p.period==='7'?'selected':''}>Últimos 7 dias</option><option value="month" ${p.period==='month'?'selected':''}>Este mês</option></select><select id="cashType" onchange="cashFilter()"><option value="all" ${p.type==='all'?'selected':''}>Todos os tipos</option><option value="entrada" ${p.type==='entrada'?'selected':''}>Entradas</option><option value="saida" ${p.type==='saida'?'selected':''}>Saídas</option></select><button class="btn primary" onclick="newCash()">+ Lançamento</button></div>
- <div class="section-head"><div><h2>Movimentações</h2><div class="cash-note">${rows.length} lançamento(s) encontrado(s)</div></div></div>
  <div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Método</th><th>Valor</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x.date.split('-').reverse().join('/')}</td><td><span class="badge ${x.type==='entrada'?'b-green':'b-pink'}">${x.type}</span></td><td>${esc(x.desc)}</td><td>${esc(x.method||'-')}</td><td class="${x.type==='entrada'?'cash-type-entry':'cash-type-exit'}">${x.type==='entrada'?'+':'−'} ${money(x.value)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Nenhuma movimentação encontrada.</td></tr>'}</tbody></table></div>
- ${canceled.length?`<div class="section" style="margin-top:16px"><div class="section-head"><div><h2>Cancelamentos não contabilizados</h2><div class="cash-note">Histórico mantido para conferência.</div></div></div><div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Descrição</th><th>Método</th><th>Valor</th></tr></thead><tbody>${canceled.slice().reverse().map(x=>`<tr class="cash-row-cancelado"><td>${x.date.split('-').reverse().join('/')}</td><td>${esc(x.desc)}</td><td>${esc(x.method||'-')}</td><td>${money(x.value)}</td></tr>`).join('')}</tbody></table></div></div>`:''}`;
+ ${canceled.length?`<div class="section" style="margin-top:16px"><div class="section-head"><div><h2>Cancelamentos não contabilizados</h2><div class="cash-note">Histórico mantido para conferência. Total: ${money(canceledSum)}</div></div></div><div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Descrição</th><th>Método</th><th>Valor</th></tr></thead><tbody>${canceled.slice().reverse().map(x=>`<tr class="cash-row-cancelado"><td>${x.date.split('-').reverse().join('/')}</td><td>${esc(x.desc)}</td><td>${esc(x.method||'-')}</td><td>${money(x.value)}</td></tr>`).join('')}</tbody></table></div></div>`:''}`;
 }
 
 function cashFilter(){window.__cashFilters={period:document.getElementById('cashPeriod')?.value||'all',type:document.getElementById('cashType')?.value||'all',search:document.getElementById('cashSearch')?.value||''};cash();}
@@ -1596,7 +1612,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V38 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V39 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
