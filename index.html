@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V39</title>
+<title>Ideias Print — Gestão Online V40</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -396,6 +396,42 @@ html,body{max-width:100%;overflow-x:hidden}
 .v39-caixa{margin:4px 0 18px}.v39-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}.v39-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--muted)}.v39-head h2{margin:3px 0 0;font-size:22px}.v39-period{font-size:11px;color:var(--muted);white-space:nowrap}.v39-main{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.v39-main-card{padding:17px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 5px 18px rgba(0,0,0,.035)}.v39-main-card .label{font-size:11px;color:var(--muted)}.v39-main-card .value{font-size:25px;font-weight:850;margin-top:5px;letter-spacing:-.02em}.v39-main-card .sub{font-size:10px;color:var(--muted);margin-top:4px}.v39-main-card.saldo{background:linear-gradient(145deg,#fff,#f7fbfc)}.v39-strip{display:grid;grid-template-columns:1fr 1.2fr 1.2fr;gap:10px;margin-top:10px}.v39-strip-card{min-width:0;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:#f8f9fa}.v39-strip-card span{display:block;font-size:10px;color:var(--muted)}.v39-strip-card b{display:block;font-size:14px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v39-strip-card small{display:block;font-size:9px;color:var(--muted);margin-top:2px}.v39-section-title{margin:18px 0 8px}.v39-section-title h2{margin:0;font-size:17px}.v39-section-title p{margin:3px 0 0;font-size:11px;color:var(--muted)}
 @media(max-width:700px){.v39-head{align-items:flex-start}.v39-head h2{font-size:20px}.v39-main{grid-template-columns:1fr 1fr}.v39-main-card.saldo{grid-column:1/-1}.v39-main-card .value{font-size:22px}.v39-strip{grid-template-columns:1fr 1fr}.v39-strip-card:last-child{grid-column:1/-1}}
 @media(max-width:430px){.v39-main{gap:8px}.v39-main-card{padding:13px}.v39-main-card .value{font-size:20px}.v39-strip{gap:8px}.v39-strip-card{padding:10px}.v39-strip-card b{font-size:13px}}
+</style>
+
+
+<style id="v40-caixa-style">
+/* V40 — Caixa: indicadores principais com hierarquia profissional */
+.v39-main-card{
+  padding:18px 18px 20px;
+  min-height:120px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));
+}
+.v39-main-card .label{
+  font-size:17px !important;
+  font-weight:800 !important;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+  line-height:1.1;
+  margin-bottom:10px;
+}
+.v39-main-card .value{
+  font-size:29px !important;
+  font-weight:900 !important;
+  line-height:1.05;
+  letter-spacing:-.02em;
+}
+.v39-main-card .sub{
+  margin-top:8px;
+  font-size:11px !important;
+  opacity:.62;
+}
+@media(max-width:650px){
+  .v39-main-card{padding:15px 14px 17px;min-height:108px}
+  .v39-main-card .label{font-size:16px !important}
+  .v39-main-card .value{font-size:25px !important}
+}
 </style>
 
 </head>
@@ -1186,9 +1222,9 @@ function cash(){
  <section class="v39-caixa">
    <div class="v39-head"><div><div class="v39-kicker">VISÃO FINANCEIRA</div><h2>Caixa</h2></div><div class="v39-period">Resumo de ${String(now.getMonth()+1).padStart(2,'0')}/${cy}</div></div>
    <div class="v39-main">
-     <div class="v39-main-card"><div class="label">💰 Entrou</div><div class="value">${money(monthIn)}</div><div class="sub">entradas válidas no mês</div></div>
-     <div class="v39-main-card"><div class="label">💸 Saiu</div><div class="value">${money(monthOut)}</div><div class="sub">saídas registradas no mês</div></div>
-     <div class="v39-main-card saldo"><div class="label">🧾 Saldo</div><div class="value ${monthBalance>=0?'cash-net-positive':'cash-net-negative'}">${money(monthBalance)}</div><div class="sub">entradas − saídas</div></div>
+     <div class="v39-main-card"><div class="label">💰 ENTROU</div><div class="value">${money(monthIn)}</div><div class="sub">Entradas válidas no mês</div></div>
+     <div class="v39-main-card"><div class="label">💸 SAIU</div><div class="value">${money(monthOut)}</div><div class="sub">Saídas registradas no mês</div></div>
+     <div class="v39-main-card saldo"><div class="label">🧾 SALDO</div><div class="value ${monthBalance>=0?'cash-net-positive':'cash-net-negative'}">${money(monthBalance)}</div><div class="sub">Entradas − saídas</div></div>
    </div>
    <div class="v39-strip">
      <div class="v39-strip-card"><span>Movimentos</span><b>${monthRows.length}</b><small>lançamentos válidos</small></div>
@@ -1612,7 +1648,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V39 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V40 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
