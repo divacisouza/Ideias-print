@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V33</title>
+<title>Ideias Print — Gestão Online V34</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -344,6 +344,10 @@ html,body{max-width:100%;overflow-x:hidden}
 .production-alert{padding:11px 13px;border-radius:12px;background:#fff5df;margin-bottom:14px;font-size:11px}
 @media(max-width:900px){.production-toolbar{grid-template-columns:1fr 1fr}.production-toolbar input{grid-column:1/-1}.production-kpis{grid-template-columns:repeat(2,1fr)}.production-grid{grid-template-columns:1fr}}
 @media(max-width:520px){.production-toolbar{grid-template-columns:1fr}.production-toolbar input{grid-column:auto}.production-kpis{grid-template-columns:1fr 1fr}.production-kpi strong{font-size:19px}}
+<style id="v34-producao">
+.production-focus{margin:14px 0;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px}.production-focus>div{min-width:0}.production-focus span{display:block;font-size:9px;font-weight:900;letter-spacing:.08em;color:var(--muted)}.production-focus strong{display:block;font-size:14px;margin-top:3px}.production-focus small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.production-focus.danger{border-color:#f3c6d8;background:#fff7fa}.production-focus.warning{border-color:#f1ddb0;background:#fffaf0}.production-result-line{font-size:10px;color:var(--muted);margin:9px 0 0}.production-kpi{border:1px solid var(--line);background:#fff;text-align:left;cursor:pointer}.production-kpi:hover{transform:translateY(-1px)}
+@media(max-width:650px){.production-focus{align-items:flex-start;flex-direction:column}.production-focus .btn{width:100%}.production-result-line{margin-top:8px}}
+</style>
 </style>
 </head>
 <body>
@@ -477,9 +481,9 @@ function closeModal(){document.getElementById('modal').classList.remove('open')}
 
 function render(page='dashboard'){
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
- const titles={dashboard:['Dashboard','Visão geral da sua gráfica'],orcamentos:['Orçamentos','Crie e acompanhe seus orçamentos'],pedidos:['Vendas e Pedidos','Registre vendas e acompanhe a produção'],clientes:['Clientes','Cadastro de clientes'],servicos:['Serviços','Sua tabela de serviços e preços'],caixa:['Caixa','Entradas e saídas'],calculadora:['Calculadora Profissional','Forme o preço certo e proteja sua margem'],backup:['Backup e segurança','Salve ou restaure os dados do sistema'],custos:['Ficha de custos','Custos reais e parâmetros da Ideias Print']};
+ const titles={dashboard:['Dashboard','Visão geral da sua gráfica'],orcamentos:['Orçamentos','Crie e acompanhe seus orçamentos'],pedidos:['Vendas e Pedidos','Registre vendas e acompanhe a produção'],clientes:['Clientes','Cadastro de clientes'],servicos:['Serviços','Sua tabela de serviços e preços'],caixa:['Caixa','Entradas e saídas'],calculadora:['Calculadora Profissional','Forme o preço certo e proteja sua margem'],backup:['Backup e segurança','Salve ou restaure os dados do sistema'],producao:['Produção','Organize a fila, prazos e entregas'],custos:['Ficha de custos','Custos reais e parâmetros da Ideias Print']};
  const [title,sub]=titles[page]; document.getElementById('content').innerHTML=`<div class="top"><div><h1>${title}</h1><p>${sub}</p></div>${page==='dashboard'?'<button class="btn primary" onclick="newOrder()">+ Nova venda</button>':''}</div><div id="page"></div>`;
- ({dashboard:dashboard,orcamentos:quotes,pedidos:orders,clientes:clients,servicos:services,caixa:cash,calculadora:calculator,custos:costs,backup:backup}[page])();
+ ({dashboard:dashboard,orcamentos:quotes,pedidos:orders,clientes:clients,servicos:services,caixa:cash,calculadora:calculator,custos:costs,backup:backup,producao:production}[page])();
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>render(b.dataset.page));
 
@@ -839,6 +843,7 @@ function newOrder(preselectedClientId=''){
    </div>
   </div>
   <div class="field"><label>Forma de pagamento</label><select id="qpay"><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>A pagar</option></select></div>
+  <div class="field"><label>Prazo de entrega</label><input id="qDueDate" type="date"></div>
   <div class="field"><label>Status do pedido</label><select id="qstatus"><option selected>Em produção</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select></div>
   <div class="field full"><label>Observação</label><input id="orderObs" placeholder="Prazo, retirada, detalhes..."></div>
  </div>
@@ -910,6 +915,7 @@ function editOrder(id){
  openModal('Editar venda #'+o.id,`<div class="formgrid">
   <div class="field full"><label>Cliente</label><div style="display:flex;gap:8px;align-items:center"><select id="eoClient" class="client-select" style="flex:1">${clientOptions(o.clientId||'')}</select><button type="button" class="btn secondary" onclick="quickNewClient()">+ Novo cliente</button></div></div>
   <div class="field"><label>Pagamento</label><select id="eoPay"><option ${o.pay==='PIX'?'selected':''}>PIX</option><option ${o.pay==='Dinheiro'?'selected':''}>Dinheiro</option><option ${o.pay==='Cartão'?'selected':''}>Cartão</option><option ${o.pay==='A pagar'?'selected':''}>A pagar</option></select></div>
+  <div class="field"><label>Prazo de entrega</label><input id="eoDueDate" type="date" value="${o.dueDate||''}"></div>
   <div class="field"><label>Status do pedido</label><select id="eoStatus"><option ${o.status==='Em produção'?'selected':''}>Em produção</option><option ${o.status==='Pronto'?'selected':''}>Pronto</option><option ${o.status==='Entregue'?'selected':''}>Entregue</option><option ${o.status==='Cancelado'?'selected':''}>Cancelado</option></select></div>
   <div class="field full"><label>Observação</label><textarea id="eoObs" rows="3">${esc(o.obs||'')}</textarea></div>
  </div>
@@ -1349,6 +1355,7 @@ window.production=function(){
   const active=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status));
   const overdue=active.filter(o=>o.dueDate&&o.dueDate<todayStr);
   const dueToday=active.filter(o=>o.dueDate===todayStr);
+  const ready=active.filter(o=>o.status==='Pronto');
   const q=window.__prodQuery||'', sf=window.__prodStatus||'Todos', pf=window.__prodPeriod||'Todos';
   const filtered=active.filter(o=>{
     const hay=`${o.id} ${o.client||''} ${(o.items||[]).map(i=>i.name).join(' ')}`.toLowerCase();
@@ -1361,32 +1368,36 @@ window.production=function(){
   });
   const escDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):'Sem prazo';
   const priority=o=>o.dueDate?(o.dueDate<todayStr?0:o.dueDate===todayStr?1:2):3;
+  const priorityText=o=>o.dueDate&&o.dueDate<todayStr?'ATRASADO':o.dueDate===todayStr?'HOJE':o.dueDate?'PRAZO':'SEM PRAZO';
   const card=o=>{
     const cls=o.dueDate&&o.dueDate<todayStr?'overdue':o.dueDate===todayStr?'today':'';
     const items=(o.items||[]).map(i=>`${i.qty}x ${esc(i.name)}`).join(' • ');
     const next=o.status==='Em produção'?'Pronto':'Entregue';
+    const ptxt=priorityText(o);
     return `<div class="production-card ${cls}">
       <div class="production-card-head"><strong>#${o.id} — ${esc(o.client||'Balcão')}</strong><span class="badge ${cls==='overdue'?'b-pink':cls==='today'?'b-yellow':'b-blue'}">${o.status}</span></div>
-      <small>${items||'Sem itens'}<br>Prazo: <b>${escDate(o.dueDate)}</b> • Total: <b>${money(o.total||0)}</b></small>
-      <div class="production-actions"><button class="btn primary" onclick="productionAdvance(${o.id})">→ ${next}</button><button class="btn secondary" onclick="editOrder(${o.id})">Editar</button></div>
+      <small>${items||'Sem itens'}<br>Prazo: <b>${escDate(o.dueDate)}</b> • ${ptxt} • Total: <b>${money(o.total||0)}</b></small>
+      <div class="production-actions"><button class="btn primary" onclick="productionAdvance(${o.id})">${o.status==='Pronto'?'📦 Entregar':'✓ Marcar pronto'}</button><button class="btn secondary" onclick="editOrder(${o.id})">Editar</button></div>
     </div>`;
   };
   const cols=['Em produção','Pronto'];
-  root.innerHTML=`<div class="page-header"><h1>🏭 Produção</h1><p>Organize a fila, priorize prazos e avance os pedidos rapidamente.</p></div>
-  ${overdue.length?`<div class="production-alert">⚠️ <b>${overdue.length} pedido(s) atrasado(s)</b>. Priorize estes pedidos na produção.</div>`:''}
+  const focus=overdue[0]||dueToday[0]||active[0];
+  root.innerHTML=`<div class="page-header"><h1>🏭 Produção</h1><p>Uma fila simples para saber o que fazer primeiro e o que já pode ser entregue.</p></div>
+  ${focus?`<div class="production-focus ${overdue.length?'danger':dueToday.length?'warning':''}"><div><span>PRIORIDADE AGORA</span><strong>#${focus.id} — ${esc(focus.client||'Balcão')}</strong><small>${focus.dueDate&&focus.dueDate<todayStr?'Prazo vencido. Resolva este pedido primeiro.':focus.dueDate===todayStr?'Prazo para hoje. Priorize antes dos demais.':'Próximo pedido da fila.'}</small></div><button class="btn ${overdue.length?'danger':'primary'}" onclick="editOrder(${focus.id})">Abrir pedido</button></div>`:''}
   <div class="production-kpis">
-    <div class="production-kpi"><span>Em produção</span><strong>${active.filter(o=>o.status==='Em produção').length}</strong></div>
-    <div class="production-kpi"><span>Prontos</span><strong>${active.filter(o=>o.status==='Pronto').length}</strong></div>
-    <div class="production-kpi"><span>Prazo hoje</span><strong>${dueToday.length}</strong></div>
-    <div class="production-kpi"><span>Atrasados</span><strong>${overdue.length}</strong></div>
+    <button class="production-kpi" onclick="window.__prodStatus='Em produção';production()"><span>Em produção</span><strong>${active.filter(o=>o.status==='Em produção').length}</strong></button>
+    <button class="production-kpi" onclick="window.__prodStatus='Pronto';production()"><span>Prontos</span><strong>${ready.length}</strong></button>
+    <button class="production-kpi" onclick="window.__prodPeriod='Hoje';production()"><span>Prazo hoje</span><strong>${dueToday.length}</strong></button>
+    <button class="production-kpi" onclick="window.__prodPeriod='Atrasados';production()"><span>Atrasados</span><strong>${overdue.length}</strong></button>
   </div>
   <div class="production-toolbar">
     <input id="prodSearch" value="${esc(q)}" placeholder="Buscar pedido, cliente ou serviço...">
     <select id="prodStatus"><option>Todos</option><option ${sf==='Em produção'?'selected':''}>Em produção</option><option ${sf==='Pronto'?'selected':''}>Pronto</option></select>
     <select id="prodPeriod"><option>Todos</option><option ${pf==='Hoje'?'selected':''}>Hoje</option><option ${pf==='Atrasados'?'selected':''}>Atrasados</option><option ${pf==='Sem prazo'?'selected':''}>Sem prazo</option></select>
   </div>
+  <div class="production-result-line"><b>${filtered.length}</b> pedido(s) na fila${pf!=='Todos'?` • filtro: ${esc(pf)}`:''}</div>
   <div class="production-grid">${cols.map(st=>{
-    const rows=filtered.filter(o=>o.status===st).sort((a,b)=>priority(a)-priority(b)||(a.dueDate||'9999').localeCompare(b.dueDate||'9999'));
+    const rows=filtered.filter(o=>o.status===st).sort((a,b)=>priority(a)-priority(b)||(a.dueDate||'9999').localeCompare(b.dueDate||'9999')||Number(a.id)-Number(b.id));
     return `<div class="production-col"><h3>${st==='Em produção'?'🔧':'✅'} ${st} <span class="badge">${rows.length}</span></h3>${rows.length?rows.map(card).join(''):'<div class="production-empty">Nenhum pedido nesta etapa.</div>'}</div>`;
   }).join('')}</div>`;
   document.getElementById('prodSearch').oninput=e=>{window.__prodQuery=e.target.value;production()};
@@ -1488,7 +1499,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V33 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V34 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
