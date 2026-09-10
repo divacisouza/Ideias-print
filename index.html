@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V28</title>
+<title>Ideias Print — Gestão Online V33</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -316,6 +316,35 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(max-width:1000px){.v32-action-grid{grid-template-columns:1fr 1fr}.v32-action-card.highlight{grid-column:1/-1}}
 @media(max-width:700px){.v32-action-grid{grid-template-columns:1fr}.v32-action-card.highlight{grid-column:auto}}
 </style>
+
+
+<style id="v33-mobile-exit-production">
+/* V33 — saída no menu lateral + produção */
+#v13Userbar{display:none!important}
+#sideLogoutBtn{margin-top:4px;color:#fff!important;background:#202328!important}
+#sideLogoutBtn:hover{background:#2b2f35!important;color:#fff!important}
+.production-toolbar{display:grid;grid-template-columns:1.4fr 180px 180px;gap:10px;margin-bottom:14px}
+.production-toolbar input,.production-toolbar select{height:42px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px 11px;outline:none}
+.production-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.production-kpi{padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.production-kpi span{display:block;color:var(--muted);font-size:11px}
+.production-kpi strong{display:block;font-size:21px;margin-top:5px}
+.production-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.production-col{background:#f1f3f5;border:1px solid #e3e6ea;border-radius:14px;padding:10px;min-height:190px}
+.production-col h3{font-size:14px;margin:4px 6px 10px}
+.production-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 2px 8px #00000008}
+.production-card.overdue{border-left:4px solid var(--pink)}
+.production-card.today{border-left:4px solid var(--yellow)}
+.production-card-head{display:flex;justify-content:space-between;gap:8px}
+.production-card strong{font-size:13px}
+.production-card small{display:block;color:var(--muted);font-size:10px;margin-top:4px;line-height:1.45}
+.production-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.production-actions .btn{font-size:10px;padding:6px 8px}
+.production-empty{color:var(--muted);font-size:11px;text-align:center;padding:28px 8px}
+.production-alert{padding:11px 13px;border-radius:12px;background:#fff5df;margin-bottom:14px;font-size:11px}
+@media(max-width:900px){.production-toolbar{grid-template-columns:1fr 1fr}.production-toolbar input{grid-column:1/-1}.production-kpis{grid-template-columns:repeat(2,1fr)}.production-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.production-toolbar{grid-template-columns:1fr}.production-toolbar input{grid-column:auto}.production-kpis{grid-template-columns:1fr 1fr}.production-kpi strong{font-size:19px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -331,6 +360,8 @@ html,body{max-width:100%;overflow-x:hidden}
     <button data-page="calculadora">🧮 &nbsp;Calculadora</button>
     <button data-page="custos">💰 &nbsp;Custos</button>
     <button data-page="backup">💾 &nbsp;Backup</button>
+    <button data-page="producao">🏭 &nbsp;Produção</button>
+    <button id="sideLogoutBtn" type="button">🚪 &nbsp;SAIR</button>
   </div>
 </aside>
 <main>
@@ -864,7 +895,7 @@ function saveOrder(){
  const status=document.getElementById('qstatus').value;
  db.orders.push({
    id:oid, client:co?.name||'Balcão', clientId:cid||'', subtotal, discount, discountType, discountInput, total, summary:items.map(i=>`${i.qty}x ${i.name}`).join(', '),
-   status, date:today(), pay, items, obs:document.getElementById('orderObs')?.value||''
+   status, date:today(), dueDate:document.getElementById('qDueDate')?.value||'', pay, items, obs:document.getElementById('orderObs')?.value||''
  });
  if(pay!=='A pagar' && status!=='Cancelado')db.cash.push({id:Date.now(),date:today(),type:'entrada',value:total,desc:`Pedido #${oid} — ${co?.name||'Balcão'}`,method:pay});
  save();closeModal();render('pedidos');toast(`Venda #${oid} registrada!`);
@@ -950,7 +981,7 @@ function saveEditedOrder(id){
  const newTotal=Math.max(0,subtotal-discount);
  o.clientId=document.getElementById('eoClient').value||'';
  const co=db.clients.find(c=>String(c.id)===String(o.clientId));
- o.client=co?.name||'Balcão'; o.pay=newPay; o.status=newStatus; o.obs=document.getElementById('eoObs').value.trim();
+ o.client=co?.name||'Balcão'; o.pay=newPay; o.status=newStatus; o.dueDate=document.getElementById('eoDueDate')?.value||''; o.obs=document.getElementById('eoObs').value.trim();
  o.items=items; o.subtotal=subtotal; o.discount=discount; o.discountType=discountType; o.discountInput=discountInput; o.total=newTotal; o.summary=items.map(i=>`${i.qty}x ${i.name}`).join(', ');
  const hasCash=db.cash.some(x=>x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`));
  if(newStatus==='Cancelado' || newPay==='A pagar'){
@@ -1311,6 +1342,67 @@ window.v4MakePdf=function(){
 document.addEventListener('input',e=>{if(e.target.id==='v4Validity'||e.target.id==='v4Obs')v4Summary()});
 document.addEventListener('change',e=>{if(e.target.id==='v4Pay'||e.target.id==='v4Client')v4Summary()});
 
+
+window.production=function(){
+  const root=document.getElementById('page'); if(!root)return;
+  const todayStr=today();
+  const active=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status));
+  const overdue=active.filter(o=>o.dueDate&&o.dueDate<todayStr);
+  const dueToday=active.filter(o=>o.dueDate===todayStr);
+  const q=window.__prodQuery||'', sf=window.__prodStatus||'Todos', pf=window.__prodPeriod||'Todos';
+  const filtered=active.filter(o=>{
+    const hay=`${o.id} ${o.client||''} ${(o.items||[]).map(i=>i.name).join(' ')}`.toLowerCase();
+    if(q&&!hay.includes(q.toLowerCase()))return false;
+    if(sf!=='Todos'&&o.status!==sf)return false;
+    if(pf==='Hoje'&&o.dueDate!==todayStr)return false;
+    if(pf==='Atrasados'&&!(o.dueDate&&o.dueDate<todayStr))return false;
+    if(pf==='Sem prazo'&&o.dueDate)return false;
+    return true;
+  });
+  const escDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):'Sem prazo';
+  const priority=o=>o.dueDate?(o.dueDate<todayStr?0:o.dueDate===todayStr?1:2):3;
+  const card=o=>{
+    const cls=o.dueDate&&o.dueDate<todayStr?'overdue':o.dueDate===todayStr?'today':'';
+    const items=(o.items||[]).map(i=>`${i.qty}x ${esc(i.name)}`).join(' • ');
+    const next=o.status==='Em produção'?'Pronto':'Entregue';
+    return `<div class="production-card ${cls}">
+      <div class="production-card-head"><strong>#${o.id} — ${esc(o.client||'Balcão')}</strong><span class="badge ${cls==='overdue'?'b-pink':cls==='today'?'b-yellow':'b-blue'}">${o.status}</span></div>
+      <small>${items||'Sem itens'}<br>Prazo: <b>${escDate(o.dueDate)}</b> • Total: <b>${money(o.total||0)}</b></small>
+      <div class="production-actions"><button class="btn primary" onclick="productionAdvance(${o.id})">→ ${next}</button><button class="btn secondary" onclick="editOrder(${o.id})">Editar</button></div>
+    </div>`;
+  };
+  const cols=['Em produção','Pronto'];
+  root.innerHTML=`<div class="page-header"><h1>🏭 Produção</h1><p>Organize a fila, priorize prazos e avance os pedidos rapidamente.</p></div>
+  ${overdue.length?`<div class="production-alert">⚠️ <b>${overdue.length} pedido(s) atrasado(s)</b>. Priorize estes pedidos na produção.</div>`:''}
+  <div class="production-kpis">
+    <div class="production-kpi"><span>Em produção</span><strong>${active.filter(o=>o.status==='Em produção').length}</strong></div>
+    <div class="production-kpi"><span>Prontos</span><strong>${active.filter(o=>o.status==='Pronto').length}</strong></div>
+    <div class="production-kpi"><span>Prazo hoje</span><strong>${dueToday.length}</strong></div>
+    <div class="production-kpi"><span>Atrasados</span><strong>${overdue.length}</strong></div>
+  </div>
+  <div class="production-toolbar">
+    <input id="prodSearch" value="${esc(q)}" placeholder="Buscar pedido, cliente ou serviço...">
+    <select id="prodStatus"><option>Todos</option><option ${sf==='Em produção'?'selected':''}>Em produção</option><option ${sf==='Pronto'?'selected':''}>Pronto</option></select>
+    <select id="prodPeriod"><option>Todos</option><option ${pf==='Hoje'?'selected':''}>Hoje</option><option ${pf==='Atrasados'?'selected':''}>Atrasados</option><option ${pf==='Sem prazo'?'selected':''}>Sem prazo</option></select>
+  </div>
+  <div class="production-grid">${cols.map(st=>{
+    const rows=filtered.filter(o=>o.status===st).sort((a,b)=>priority(a)-priority(b)||(a.dueDate||'9999').localeCompare(b.dueDate||'9999'));
+    return `<div class="production-col"><h3>${st==='Em produção'?'🔧':'✅'} ${st} <span class="badge">${rows.length}</span></h3>${rows.length?rows.map(card).join(''):'<div class="production-empty">Nenhum pedido nesta etapa.</div>'}</div>`;
+  }).join('')}</div>`;
+  document.getElementById('prodSearch').oninput=e=>{window.__prodQuery=e.target.value;production()};
+  document.getElementById('prodStatus').onchange=e=>{window.__prodStatus=e.target.value;production()};
+  document.getElementById('prodPeriod').onchange=e=>{window.__prodPeriod=e.target.value;production()};
+};
+window.productionAdvance=function(id){
+  const o=db.orders.find(x=>Number(x.id)===Number(id)); if(!o)return;
+  const ns=o.status==='Em produção'?'Pronto':'Entregue';
+  o.status=ns;
+  if(ns==='Entregue' && o.pay&&o.pay!=='A pagar'&&!db.cash.some(x=>x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${o.id} —`))){
+    db.cash.push({id:Date.now(),date:today(),type:'entrada',value:Number(o.total||0),desc:`Pedido #${o.id} — ${o.client||'Balcão'}`,method:o.pay});
+  }
+  save(); production(); toast(`Pedido #${id}: ${ns}.`);
+};
+
 window.v4Render=function(){
  const k=document.getElementById('v4Kanban');
  if(k){
@@ -1366,7 +1458,7 @@ setTimeout(v4Render,500);
 <div id="v13AuthGate">
   <div class="v13-auth-card">
     <div class="v13-brandmark"><img id="v13AuthLogo" alt="Ideias Print - Logo 1"></div>
-    <p class="v13-auth-sub">Sistema de gestão online • V22</p>
+    <p class="v13-auth-sub">Sistema de gestão online • V33</p>
     <label for="v13Email">E-mail</label>
     <input id="v13Email" type="email" autocomplete="email" placeholder="seu@email.com">
     <label for="v13Password">Senha</label>
@@ -1396,7 +1488,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V22 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V33 Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
@@ -1574,6 +1666,9 @@ setTimeout(v4Render,500);
     if(data.session){setMsg('Conta criada e login realizado.',true);}else setMsg('Conta criada. Verifique seu e-mail para confirmar o acesso.',true);
   };
   document.getElementById('v13LogoutBtn').onclick=async()=>{await sb.auth.signOut();};
+  const sideLogout=document.getElementById('sideLogoutBtn');
+  if(sideLogout)sideLogout.onclick=async()=>{if(confirm('Deseja sair do sistema?'))await sb.auth.signOut();};
+
   start();
 })();
 </script>
