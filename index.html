@@ -579,7 +579,7 @@ button,.btn,input,select{touch-action:manipulation}
     <button data-page="servicos">🖨️ &nbsp;Serviços</button>
     <button data-page="caixa">💰 &nbsp;Caixa</button>
     <button data-page="calculadora">🧮 &nbsp;Calculadora</button>
-    <button data-page="custos">💰 &nbsp;Custos</button>
+    <button data-page="custos">📊 &nbsp;Custos</button>
     <button data-page="backup">💾 &nbsp;Backup</button>
     <button data-page="producao">🏭 &nbsp;Produção</button>
     <button id="sideLogoutBtn" type="button">🚪 &nbsp;SAIR</button>
@@ -1841,7 +1841,7 @@ setTimeout(v4Render,500);
     <div class="v22-forgot-row"><button type="button" id="v22ForgotBtn" class="v22-link">Esqueci minha senha</button></div>
     <div class="v13-auth-actions">
       <button id="v13LoginBtn">Entrar</button>
-      <button id="v13SignupBtn">Criar conta</button>
+      <button id="v13SignupBtn"></button>
     </div>
     <div id="v13AuthMsg"></div>
     <div id="v22ResetBox" class="v22-reset-box" style="display:none">
@@ -1863,7 +1863,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V42 Simplificado Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V48 Usuários</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
@@ -2109,5 +2109,135 @@ setTimeout(v4Render,500);
 </script>
 <script id="v36-crm-js">(function(){const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));function cs(){return Array.isArray(window.db?.clients)?db.clients:[]}function os(){return Array.isArray(window.db?.orders)?db.orders:[]}function d(o){return new Date(o.date||o.createdAt||o.data||'')}function st(c){let a=os().filter(o=>o.status!=='Cancelado'&&(String(o.clientId||o.customerId||'')===String(c.id)||String(o.client||o.clientName||'').trim()===String(c.name||'').trim()));let ds=a.map(d).filter(x=>!isNaN(x)).sort((a,b)=>b-a);return{a,total:a.reduce((s,o)=>s+Number(o.total||0),0),last:ds[0]||null,days:ds[0]?Math.max(0,Math.floor((Date.now()-ds[0])/86400000)):null}}function renderList(f='react'){let el=document.getElementById('v36list');if(!el)return;let r=cs().map(c=>({c,s:st(c)})).filter(x=>x.s.a.length);if(f==='rec')r=r.filter(x=>x.s.a.length>=2).sort((a,b)=>b.s.total-a.s.total);else if(f==='vip'||f==='all')r=r.sort((a,b)=>b.s.total-a.s.total);else r=r.filter(x=>x.s.days>=30).sort((a,b)=>b.s.days-a.s.days);r=r.slice(0,6);el.innerHTML=r.length?r.map(x=>`<div class="v36-row"><div><strong>${esc(x.c.name||'Cliente')}</strong><small>${x.s.days===0?'Compra hoje':x.s.days+' dias desde a última compra'} · ${x.s.a.length} pedido(s) · ${money(x.s.total)}</small></div><button class="v36-btn" data-id="${esc(x.c.id)}">${x.s.days>=30?'Reativar':'Ver ficha'}</button></div>`).join(''):'<div class="v36-row"><small>Nenhum cliente encontrado neste grupo.</small></div>';el.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(typeof clientProfile==='function')clientProfile(b.dataset.id);else if(typeof render==='function')render('clientes')})}function update(){let h=[...document.querySelectorAll('h1,h2,h3,h4,.page-title,.section-title')].find(x=>/clientes|customers/i.test(x.textContent||''));if(!h)return;let panel=document.getElementById('v36panel');if(!panel){panel=document.createElement('section');panel.id='v36panel';panel.className='v36-crm';panel.innerHTML='<div class="v36-crm-head"><div><div class="v36-k">PÓS-VENDA</div><h3>Relacionamento com clientes</h3></div></div><div class="v36-grid"><div class="v36-card" data-f="all"><span>Clientes com compras</span><b id="v36all">0</b></div><div class="v36-card" data-f="rec"><span>Recorrentes</span><b id="v36rec">0</b></div><div class="v36-card" data-f="react"><span>Para reativar</span><b id="v36react">0</b></div><div class="v36-card" data-f="vip"><span>Maior faturamento</span><b id="v36vip">—</b></div></div><div class="v36-list" id="v36list"></div>';h.parentElement.insertBefore(panel,h.nextSibling);panel.querySelectorAll('.v36-card').forEach(x=>x.onclick=()=>renderList(x.dataset.f))}let r=cs().map(c=>({c,s:st(c)})),a=r.filter(x=>x.s.a.length),rec=a.filter(x=>x.s.a.length>=2),react=a.filter(x=>x.s.days>=30),vip=[...a].sort((x,y)=>y.s.total-x.s.total)[0];document.getElementById('v36all').textContent=a.length;document.getElementById('v36rec').textContent=rec.length;document.getElementById('v36react').textContent=react.length;document.getElementById('v36vip').textContent=vip?money(vip.s.total):'—';renderList('react')}let old=window.render;if(typeof old==='function')window.render=function(){let r=old.apply(this,arguments);setTimeout(update,60);setTimeout(update,350);return r};document.addEventListener('DOMContentLoaded',()=>setTimeout(update,300));})();</script>
 
+
+<style id="v48-users-style">
+.v48-userbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.v48-role{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#eef2ff;color:#3730a3}
+.v48-user-list{display:grid;gap:10px;margin-top:14px}
+.v48-user-card{border:1px solid #e7e7ef;border-radius:14px;padding:13px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.v48-user-main{min-width:0}.v48-user-main strong{display:block}.v48-user-main small{display:block;color:#667085;margin-top:3px;overflow:hidden;text-overflow:ellipsis}
+.v48-user-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.v48-user-actions button{min-height:38px}
+.v48-muted{color:#667085;font-size:13px}.v48-form{display:grid;gap:10px}.v48-form label{font-size:12px;font-weight:800;color:#344054}.v48-form input,.v48-form select{width:100%;box-sizing:border-box}
+.v48-levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}.v48-level{padding:11px;border:1px solid #e7e7ef;border-radius:12px}.v48-level b{display:block;margin-bottom:4px}.v48-level small{color:#667085;line-height:1.35}
+@media(max-width:640px){.v48-user-card{align-items:flex-start;flex-direction:column}.v48-user-actions{width:100%;justify-content:flex-start}.v48-user-actions button{flex:1}.v48-levels{grid-template-columns:1fr}}
+</style>
+<script id="v48-users-system">
+(function(){
+  'use strict';
+  const PERMS={
+    admin:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','calculadora','custos','backup','producao','usuarios'],
+    gerente:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','calculadora','custos','backup','producao'],
+    atendente:['dashboard','orcamentos','pedidos','clientes','producao'],
+    producao:['dashboard','pedidos','clientes','producao']
+  };
+  const ROLE_NAMES={admin:'Administrador',gerente:'Gerente',atendente:'Atendente',producao:'Produção'};
+  const ROLE_DESC={admin:'Acesso total e administração de usuários.',gerente:'Operação, financeiro e gestão, sem usuários.',atendente:'Vendas, clientes, orçamentos, pedidos e produção.',producao:'Pedidos e acompanhamento da produção.'};
+  let me=null, ready=false, originalRender=null, booted=false;
+  const sb=()=>window.__ipSupabase;
+  function notify(t){if(typeof window.toast==='function')window.toast(t);else console.log(t)}
+  function roleName(r){return ROLE_NAMES[r]||r||'Atendente'}
+  function allowed(page){return !!me && (PERMS[me.role]||PERMS.atendente).includes(page)}
+  function applyNav(){
+    document.querySelectorAll('.nav button[data-page]').forEach(b=>{
+      const p=b.dataset.page;
+      if(p==='usuarios') b.style.display=me?.role==='admin'?'':'none';
+      else b.style.display=allowed(p)?'':'none';
+    });
+    const lb=document.getElementById('v48RoleBadge'); if(lb)lb.textContent=me?roleName(me.role):'';
+    const eb=document.getElementById('v13UserEmail'); if(eb&&me?.email)eb.textContent=me.email;
+  }
+  async function ensureProfile(){
+    const client=sb(); if(!client) return null;
+    const {data:{user}}=await client.auth.getUser(); if(!user)return null;
+    const r=await client.rpc('ensure_my_profile');
+    if(r.error){console.error('ensure_my_profile',r.error);throw r.error}
+    const p=r.data; if(!p)return null;
+    return {...p,email:user.email||''};
+  }
+  async function syncSession(session){
+    if(!session?.user){me=null;ready=false;applyNav();return}
+    try{
+      const p=await ensureProfile();
+      if(!p || p.active===false){await sb().auth.signOut();notify('Usuário bloqueado ou sem perfil ativo.');return}
+      me=p; ready=true; applyNav();
+      if(window.__ipV48StartResolve)window.__ipV48StartResolve(p);
+    }catch(e){console.error(e);notify('Não foi possível validar seu perfil de acesso.');}
+  }
+  function patchRender(){
+    if(booted)return;
+    if(typeof window.render!=='function')return;
+    originalRender=window.render;
+    window.render=function(page='dashboard'){
+      if(page==='usuarios'){if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return} return usuariosPanel();}
+      if(ready && !allowed(page)){notify('Seu nível de acesso não permite abrir esta área.');page='dashboard'}
+      const r=originalRender.apply(this,[page]);
+      setTimeout(applyNav,0); return r;
+    };
+    booted=true; applyNav();
+  }
+  async function boot(){
+    for(let i=0;i<100 && !sb();i++) await new Promise(r=>setTimeout(r,50));
+    if(!sb()){console.warn('V48: Supabase não inicializou');return}
+    patchRender();
+    const {data:{session}}=await sb().auth.getSession();
+    await syncSession(session);
+    sb().auth.onAuthStateChange((event,s)=>{
+      if(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED'||event==='SIGNED_OUT')setTimeout(()=>syncSession(s),0);
+    });
+  }
+  function usersHtml(users){
+    if(!users.length)return '<div class="v48-muted">Nenhum usuário cadastrado.</div>';
+    return users.map(u=>{
+      const self=me&&u.id===me.id;
+      const status=u.active?'Ativo':'Bloqueado';
+      return `<div class="v48-user-card"><div class="v48-user-main"><strong>${esc(u.full_name||'Sem nome')} ${self?'<span class="v48-role">Você</span>':''}</strong><small>${esc(u.email||'')}</small><div class="v48-userbar"><span class="v48-role">${esc(roleName(u.role))}</span><span class="v48-muted">${status}</span></div></div><div class="v48-user-actions"><button class="btn secondary" onclick="v48EditRole('${u.id}','${esc(u.role)}')">Nível</button>${self?'':`<button class="btn ${u.active?'secondary':'primary'}" onclick="v48Toggle('${u.id}',${!u.active})">${u.active?'Bloquear':'Ativar'}</button>`}</div></div>`
+    }).join('');
+  }
+  function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+  async function loadUsers(){
+    const r=await sb().functions.invoke('admin-users',{body:{action:'list'}});
+    if(r.error)throw r.error;
+    const data=r.data||{}; return Array.isArray(data.users)?data.users:[];
+  }
+  async function usuariosPanel(){
+    if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return}
+    try{
+      const users=await loadUsers();
+      const body=`<div class="v48-muted">Administre quem pode entrar no sistema e o que cada nível pode acessar.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" onclick="v48NewUser()">+ Novo usuário</button><button class="btn secondary" onclick="usuariosPanel()">Atualizar</button></div><div class="v48-user-list">${usersHtml(users)}</div><div class="v48-levels">${Object.keys(ROLE_NAMES).map(r=>`<div class="v48-level"><b>${roleName(r)}</b><small>${ROLE_DESC[r]}</small></div>`).join('')}</div>`;
+      openModal('👤 Usuários',body);
+    }catch(e){console.error('admin-users list',e);notify('Não foi possível carregar os usuários.');}
+  }
+  function v48NewUser(){
+    openModal('Novo usuário',`<div class="v48-form"><label>Nome</label><input id="v48Name" placeholder="Nome completo"><label>E-mail</label><input id="v48Email" type="email" placeholder="E-mail de acesso"><label>Nível de acesso</label><select id="v48Role"><option value="atendente">Atendente</option><option value="gerente">Gerente</option><option value="producao">Produção</option><option value="admin">Administrador</option></select><div class="v48-muted">O convite para definir a senha será enviado ao e-mail informado.</div><button class="btn primary" onclick="v48CreateUser()">Enviar convite</button></div>`);
+  }
+  async function v48CreateUser(){
+    const name=document.getElementById('v48Name')?.value.trim(),email=document.getElementById('v48Email')?.value.trim(),role=document.getElementById('v48Role')?.value;
+    if(!name||!email){notify('Informe nome e e-mail.');return}
+    try{const r=await sb().functions.invoke('admin-users',{body:{action:'invite',full_name:name,email,role}});if(r.error)throw r.error;notify('Convite enviado.');await usuariosPanel()}catch(e){console.error(e);notify('Não foi possível criar o usuário.');}
+  }
+  window.v48EditRole=async function(id,current){
+    openModal('Alterar nível',`<div class="v48-form"><label>Novo nível</label><select id="v48EditRole"><option value="atendente" ${current==='atendente'?'selected':''}>Atendente</option><option value="gerente" ${current==='gerente'?'selected':''}>Gerente</option><option value="producao" ${current==='producao'?'selected':''}>Produção</option><option value="admin" ${current==='admin'?'selected':''}>Administrador</option></select><button class="btn primary" onclick="v48SaveRole('${id}')">Salvar</button></div>`);
+  };
+  window.v48SaveRole=async function(id){
+    const role=document.getElementById('v48EditRole')?.value;if(!role)return;
+    try{const r=await sb().functions.invoke('admin-users',{body:{action:'role',user_id:id,role}});if(r.error)throw r.error;notify('Nível atualizado.');await usuariosPanel()}catch(e){console.error(e);notify('Não foi possível alterar o nível.');}
+  };
+  window.v48Toggle=async function(id,active){
+    try{const r=await sb().functions.invoke('admin-users',{body:{action:'active',user_id:id,active}});if(r.error)throw r.error;notify(active?'Usuário ativado.':'Usuário bloqueado.');await usuariosPanel()}catch(e){console.error(e);notify('Não foi possível alterar o status.');}
+  };
+  window.v48OpenUsers=usuariosPanel;
+  // Insert the menu item once, without changing the existing V47 layout.
+  function addMenu(){
+    const nav=document.querySelector('.nav'); if(!nav||document.getElementById('v48NavUsuarios'))return;
+    const b=document.createElement('button'); b.id='v48NavUsuarios';b.dataset.page='usuarios';b.type='button';b.innerHTML='👤 &nbsp;Usuários';b.style.display='none';
+    const logout=document.getElementById('sideLogoutBtn');nav.insertBefore(b,logout||null);b.onclick=()=>usuariosPanel();applyNav();
+  }
+  // role badge next to user email
+  function addBadge(){const bar=document.getElementById('v13Userbar');if(!bar||document.getElementById('v48RoleBadge'))return;const s=document.createElement('span');s.id='v48RoleBadge';s.className='v48-role';bar.insertBefore(s,bar.querySelector('button')||null)}
+  const readyDom=()=>{addMenu();addBadge();patchRender();applyNav()};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',readyDom);else readyDom();
+  boot();
+})();
+</script>
 </body>
 </html>
