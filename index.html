@@ -1818,7 +1818,6 @@ setTimeout(v4Render,500);
 .v13-auth-actions{display:flex;gap:10px;margin-top:18px}
 .v13-auth-actions button{flex:1;border:0;border-radius:12px;height:46px;font-weight:800;cursor:pointer}
 #v13LoginBtn{background:#101114;color:#fff}
-#v13SignupBtn{background:#00afe9;color:#101114}
 #v13AuthMsg{min-height:20px;margin-top:13px;font-size:13px;font-weight:700}
 .v13-cloud-badge{position:fixed;right:14px;bottom:14px;z-index:9990;background:#101114;color:#fff;border:1px solid rgba(255,255,255,.12);padding:8px 11px;border-radius:999px;font-size:12px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
 .v13-cloud-badge span{color:#00afe9;font-weight:800}
@@ -1841,7 +1840,6 @@ setTimeout(v4Render,500);
     <div class="v22-forgot-row"><button type="button" id="v22ForgotBtn" class="v22-link">Esqueci minha senha</button></div>
     <div class="v13-auth-actions">
       <button id="v13LoginBtn">Entrar</button>
-      <button id="v13SignupBtn"></button>
     </div>
     <div id="v13AuthMsg"></div>
     <div id="v22ResetBox" class="v22-reset-box" style="display:none">
@@ -1863,7 +1861,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V48 Usuários</span></div>
+<div class="v13-cloud-badge">☁️ <span>V48 • Usuários</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
@@ -2031,14 +2029,6 @@ setTimeout(v4Render,500);
     if(!email||!password)return setMsg('Informe e-mail e senha.');
     setMsg('Entrando...');
     const {error}=await sb.auth.signInWithPassword({email,password}); if(error)return setMsg(error.message); setMsg('Login realizado.',true);
-  };
-  document.getElementById('v13SignupBtn').onclick=async()=>{
-    const email=document.getElementById('v13Email').value.trim(),password=document.getElementById('v13Password').value;
-    if(!email||password.length<6)return setMsg('Informe um e-mail e uma senha com pelo menos 6 caracteres.');
-    setMsg('Criando conta...');
-    const {data,error}=await sb.auth.signUp({email,password});
-    if(error)return setMsg(error.message);
-    if(data.session){setMsg('Conta criada e login realizado.',true);}else setMsg('Conta criada. Verifique seu e-mail para confirmar o acesso.',true);
   };
   document.getElementById('v13LogoutBtn').onclick=async()=>{await sb.auth.signOut();};
   const sideLogout=document.getElementById('sideLogoutBtn');
