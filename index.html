@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V43 Simplificado</title>
+<title>Ideias Print — Gestão Online V44</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -252,6 +252,13 @@ html,body{max-width:100%;overflow-x:hidden}
 .v12-note{color:var(--muted);font-size:12px;line-height:1.5}
 @media(max-width:760px){.v12-cost-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.v12-cost-grid{grid-template-columns:1fr}}
+</style>
+
+
+<style id="v44-cost-intelligence">
+.v44-wrap{display:grid;gap:16px}.v44-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.v44-k{font-size:10px;font-weight:900;letter-spacing:.08em;color:#8a8f98}.v44-head h2{margin:2px 0 4px}.v44-sub{margin:0;color:var(--muted);font-size:12px;line-height:1.45}.v44-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.v44-kpi{border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px}.v44-kpi span{display:block;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.v44-kpi b{display:block;font-size:21px;margin-top:5px}.v44-kpi small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.v44-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.v44-card{border:1px solid var(--line);border-radius:15px;background:#fff;padding:16px}.v44-card h3{margin:0 0 4px;font-size:15px}.v44-card p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}.v44-table{width:100%;border-collapse:collapse;margin-top:10px}.v44-table th,.v44-table td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:left;font-size:11px}.v44-table th{font-size:9px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}.v44-table td:last-child,.v44-table th:last-child{text-align:right}.v44-good{color:#087746;font-weight:800}.v44-warn{color:#a5165e;font-weight:800}.v44-material{display:grid;grid-template-columns:1fr auto;gap:9px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}.v44-material:last-child{border-bottom:0}.v44-material strong{display:block;font-size:12px}.v44-material small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.v44-cost{text-align:right;font-size:12px;font-weight:800;white-space:nowrap}.v44-rule{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:11px}.v44-rule:last-child{border-bottom:0}.v44-rule span{color:var(--muted)}.v44-note{margin-top:12px;padding:10px 12px;border-radius:11px;background:#f7f8fa;color:var(--muted);font-size:10px;line-height:1.5}.v44-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.v44-actions .btn{font-size:10px;padding:7px 10px}
+@media(max-width:900px){.v44-kpis{grid-template-columns:1fr 1fr}.v44-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.v44-wrap{gap:12px}.v44-kpis{grid-template-columns:1fr 1fr;gap:8px}.v44-kpi{padding:11px}.v44-kpi b{font-size:18px}.v44-card{padding:13px}.v44-table{min-width:560px}.v44-scroll{overflow-x:auto}.v44-material{grid-template-columns:1fr auto}}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1397,39 +1404,47 @@ try{
 
 function costs(){
   const f=v12Costs.fixed;
+  const servicesList=Array.isArray(db.services)?db.services:[];
+  const activeServices=servicesList.filter(s=>Number(s.price||0)>0);
+  const margins=activeServices.map(s=>({s,profit:Number(s.price||0)-Number(s.cost||0),margin:Number(s.price||0)?((Number(s.price||0)-Number(s.cost||0))/Number(s.price||0))*100:0}));
+  const avgMargin=margins.length?margins.reduce((a,x)=>a+x.margin,0)/margins.length:0;
+  const best=margins.slice().sort((a,b)=>b.margin-a.margin)[0];
+  const weak=margins.slice().sort((a,b)=>a.margin-b.margin)[0];
+  const target=Number(localStorage.getItem('graficaMargin')||30);
+  const breakEven=best&&best.profit>0?Math.ceil(Number(f.total||0)/best.profit):0;
   document.getElementById('page').innerHTML=`
-  <div class="section-head"><div><h2>💰 Ficha de custos da Ideias Print</h2>
-  <p class="v12-note">Baseada nos valores reais informados até agora. Você pode continuar enviando novos custos e nós ampliamos esta ficha.</p></div></div>
-  <div class="card" style="margin-bottom:18px">
-    <h3 style="margin-top:0">Custos fixos + pró-labore</h3>
-    <div class="v12-cost-grid">
-      <div class="v12-cost-card"><div class="k">Aluguel</div><div class="v">${money(f.aluguel)}</div></div>
-      <div class="v12-cost-card"><div class="k">Energia</div><div class="v">${money(f.energia)}</div></div>
-      <div class="v12-cost-card"><div class="k">Água</div><div class="v">${money(f.agua)}</div></div>
-      <div class="v12-cost-card"><div class="k">Internet</div><div class="v">${money(f.internet)}</div></div>
-      <div class="v12-cost-card"><div class="k">Pró-labore</div><div class="v">${money(f.proLabore)}</div></div>
-      <div class="v12-cost-card"><div class="k">Total mensal</div><div class="v">${money(f.total)}</div></div>
+  <div class="v44-wrap">
+    <div class="v44-head"><div><div class="v44-k">V44 · CUSTOS INTELIGENTES</div><h2>Materiais e custos</h2><p class="v44-sub">Uma visão simples do que custa produzir e de onde sua margem está vindo.</p></div></div>
+    <div class="v44-kpis">
+      <div class="v44-kpi"><span>Custos fixos</span><b>${money(f.total)}</b><small>por mês</small></div>
+      <div class="v44-kpi"><span>Margem padrão</span><b>${target.toFixed(0)}%</b><small>referência atual</small></div>
+      <div class="v44-kpi"><span>Melhor margem</span><b>${best?best.margin.toFixed(0)+'%':'—'}</b><small>${best?esc(best.s.name):'Cadastre preços'}</small></div>
+      <div class="v44-kpi"><span>Ponto de equilíbrio</span><b>${breakEven||'—'}</b><small>${best?'unid. do serviço de maior margem':'sem base suficiente'}</small></div>
     </div>
-  </div>
-  <div class="card" style="margin-bottom:18px">
-    <h3 style="margin-top:0">Materiais cadastrados</h3>
-    <div class="table-wrap"><table class="table"><thead><tr><th>Material</th><th>Referência</th><th>Custo</th></tr></thead><tbody>
-    ${v12Costs.materials.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.detail)}</td><td>${money(x.cost)} / ${esc(x.unit)}</td></tr>`).join('')}
-    </tbody></table></div>
-  </div>
-  <div class="grid" style="grid-template-columns:1fr 1fr;gap:18px">
-    <div class="card"><h3 style="margin-top:0">Regras de aproveitamento</h3>
-      <ul style="margin:0;padding-left:20px">${v12Costs.productionRules.map(x=>`<li style="margin:8px 0"><b>${esc(x.name)}:</b> ${esc(x.value)}</li>`).join('')}</ul>
+    <div class="v44-grid">
+      <section class="v44-card"><h3>Margem por serviço</h3><p>Quanto sobra por unidade depois do custo registrado no serviço.</p>
+        <div class="v44-scroll"><table class="v44-table"><thead><tr><th>Serviço</th><th>Venda</th><th>Custo</th><th>Sobra</th><th>Margem</th></tr></thead><tbody>
+        ${margins.length?margins.sort((a,b)=>b.margin-a.margin).map(x=>`<tr><td>${esc(x.s.name||'Serviço')}</td><td>${money(x.s.price)}</td><td>${money(x.s.cost)}</td><td class="${x.profit>=0?'v44-good':'v44-warn'}">${money(x.profit)}</td><td class="${x.margin>=target?'v44-good':'v44-warn'}">${x.margin.toFixed(0)}%</td></tr>`).join(''):'<tr><td colspan="5">Nenhum serviço com preço cadastrado.</td></tr>'}
+        </tbody></table></div>
+        ${weak?`<div class="v44-note">Atenção: <b>${esc(weak.s.name)}</b> tem a menor margem registrada (${weak.margin.toFixed(0)}%). Vale revisar o custo ou o preço.</div>`:''}
+      </section>
+      <section class="v44-card"><h3>Materiais cadastrados</h3><p>Custos-base já informados para os cálculos da gráfica.</p>
+        <div>${v12Costs.materials.map(x=>`<div class="v44-material"><div><strong>${esc(x.name)}</strong><small>${esc(x.detail)}</small></div><div class="v44-cost">${money(x.cost)} / ${esc(x.unit)}</div></div>`).join('')}</div>
+      </section>
     </div>
-    <div class="card"><h3 style="margin-top:0">Preços atuais informados</h3>
-      <div class="table-wrap"><table class="table"><thead><tr><th>Serviço</th><th>Preço</th></tr></thead><tbody>
-      ${v12Costs.prices.map(x=>`<tr><td>${esc(x.name)}</td><td>${money(x.price)} / ${esc(x.unit)}</td></tr>`).join('')}
-      </tbody></table></div>
-      <p class="v12-note">Os custos de produto ainda devem receber tinta, corte, mão de obra, perdas e demais componentes quando aplicáveis. Esta tela é a base para a precificação progressiva.</p>
+    <div class="v44-grid">
+      <section class="v44-card"><h3>Custos fixos mensais</h3><p>Base que precisa ser coberta pelo faturamento da gráfica.</p>
+        ${[['Aluguel',f.aluguel],['Energia',f.energia],['Água',f.agua],['Internet',f.internet],['Pró-labore',f.proLabore]].map(x=>`<div class="v44-rule"><b>${x[0]}</b><strong>${money(x[1])}</strong></div>`).join('')}
+        <div class="v44-rule"><b>Total mensal</b><strong>${money(f.total)}</strong></div>
+      </section>
+      <section class="v44-card"><h3>Regras de aproveitamento</h3><p>As regras abaixo ajudam o sistema a transformar folha em produto.</p>
+        ${v12Costs.productionRules.map(x=>`<div class="v44-rule"><b>${esc(x.name)}</b><span>${esc(x.value)}</span></div>`).join('')}
+        <div class="v44-note">Os custos de produtos que ainda não têm todos os componentes registrados continuam parciais. Não vou inventar valores: quando você informar novos custos, podemos ampliar os cálculos.</div>
+      </section>
     </div>
+    <div class="v44-actions"><button class="btn primary" onclick="render('servicos')">Revisar serviços e preços</button><button class="btn secondary" onclick="render('calculadora')">Abrir calculadora</button></div>
   </div>`;
 }
-
 function backup(){const auto=localStorage.getItem('graficaDB_backup_auto');document.getElementById('page').innerHTML=`<div class="grid" style="grid-template-columns:1fr 1fr;gap:18px"><div class="card"><h2>💾 Fazer backup</h2><p>Exporte todos os clientes, serviços, orçamentos, pedidos e caixa em um único arquivo.</p><button class="btn primary" onclick="downloadBackup()">Baixar backup agora</button></div><div class="card"><h2>♻️ Restaurar backup</h2><p>Escolha um arquivo JSON salvo anteriormente. A restauração substitui os dados atuais.</p><input id="backupFile" type="file" accept="application/json,.json" style="margin:12px 0"><button class="btn secondary" onclick="restoreBackup()">Restaurar dados</button></div><div class="card"><h2>🛡️ Margem padrão</h2><p>Usada como sugestão na calculadora profissional.</p><div class="formgrid"><div class="field"><label>Margem (%)</label><input id="defaultMargin" type="number" min="0" max="95" value="${Number(localStorage.getItem('graficaMargin')||30)}"></div></div><button class="btn primary" onclick="saveMargin()">Salvar margem</button></div><div class="card"><h2>🔄 Cópia automática local</h2><p>${auto?'✓ Ativa: uma cópia é atualizada a cada salvamento.':'Ainda não criada. Ela será criada no próximo salvamento.'}</p><button class="btn secondary" onclick="restoreAutoBackup()">Restaurar cópia automática</button></div><div class="card"><h2>Importante</h2><p>O backup automático é local. Baixe o arquivo e guarde uma cópia fora do aparelho para maior segurança.</p></div></div>`}
 function downloadBackup(){const payload={app:'Ideias Print',version:'V3',date:new Date().toISOString(),db};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-ideias-print-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);toast('Backup criado!')}
 function restoreBackup(){const f=document.getElementById('backupFile').files[0];if(!f)return toast('Escolha um arquivo de backup.');if(!confirm('Restaurar este backup substituirá os dados atuais. Continuar?'))return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(r.result);if(!p.db||!Array.isArray(p.db.services)||!Array.isArray(p.db.clients))throw Error();db=p.db;save();toast('Backup restaurado!');setTimeout(()=>render('dashboard'),500)}catch(e){toast('Arquivo de backup inválido.')}};r.readAsText(f)}
