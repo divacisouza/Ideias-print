@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V45</title>
+<title>Ideias Print — Gestão Online V46</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -471,6 +471,31 @@ html,body{max-width:100%;overflow-x:hidden}
 .v43-list{display:grid;gap:8px}.v43-row{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055)}.v43-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.06);flex:0 0 28px}.v43-main{min-width:0;flex:1}.v43-main strong{display:block;font-size:13px;line-height:1.25}.v43-main small{display:block;margin-top:2px;color:#9fa9b8;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v43-row .btn{white-space:nowrap;font-size:10px;padding:6px 9px}.v43-empty{padding:11px 2px;color:#9fa9b8;font-size:12px}
 @media(max-width:650px){.v43-today{padding:13px;margin:12px 0 14px}.v43-head h2{font-size:17px}.v43-row{padding:9px}.v43-row .btn{font-size:10px;padding:6px 8px}.v43-main strong{font-size:12px}.v43-main small{font-size:10px}}
 </style>
+
+<style id="v46-alerts">
+.v46-alerts{overflow:hidden}
+.v46-alerts .section-head{margin-bottom:9px}
+.v46-count{min-width:24px;height:24px;padding:0 7px;border-radius:999px;display:grid;place-items:center;background:rgba(255,255,255,.08);font-size:10px;font-weight:900}
+.v46-alert{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055);margin-top:7px}
+.v46-alert>span{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.06);flex:0 0 28px}
+.v46-alert>div{min-width:0;flex:1}
+.v46-alert strong{display:block;font-size:12px;line-height:1.25}
+.v46-alert small{display:block;margin-top:2px;color:#9fa9b8;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v46-alert .btn{white-space:nowrap;font-size:10px;padding:6px 9px}
+.v46-alert.critical{border-color:rgba(255,80,100,.18)}
+.v46-alert.warning{border-color:rgba(255,210,70,.16)}
+.v46-alert.pink{border-color:rgba(236,37,143,.16)}
+.v46-empty{display:flex;align-items:center;gap:10px;padding:12px 2px;color:#9fa9b8}
+.v46-empty>span{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(50,220,140,.1);color:#8ff0bb;font-weight:900}
+.v46-empty strong{display:block;color:#e7ebf2;font-size:12px}
+.v46-empty small{display:block;margin-top:2px;font-size:10px}
+@media(max-width:650px){
+  .v46-alert{align-items:flex-start;padding:9px}
+  .v46-alert .btn{font-size:10px;padding:6px 8px}
+  .v46-alert small{white-space:normal;line-height:1.3}
+}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -723,12 +748,40 @@ function dashboard(){
  }
  const v43TodayActions=`<section class="v43-today"><div class="v43-head"><div><div class="v43-kicker">HOJE</div><h2>O que fazer agora</h2></div><span class="v43-badge">${todayActions.length} ação${todayActions.length===1?'':'ões'}</span></div><div class="v43-list">${todayActions.slice(0,3).join('')}</div></section>`;
 
- const alerts=[];
- if(open)alerts.push(`<div class="dash-alert"><span>⏳</span><div><strong>${open} pedido(s) em aberto</strong><small>Há vendas aguardando produção ou entrega.</small></div><button class="btn secondary" onclick="render('pedidos')">Ver pedidos</button></div>`);
- if(overdueOpen.length)alerts.push(`<div class="dash-alert warning"><span>⚠️</span><div><strong>${overdueOpen.length} pedido(s) antigo(s) em aberto</strong><small>Confira pedidos de dias anteriores que ainda não foram concluídos.</small></div><button class="btn secondary" onclick="render('pedidos')">Conferir</button></div>`);
- if(lowMargin.length)alerts.push(`<div class="dash-alert pink"><span>📉</span><div><strong>${lowMargin.length} serviço(s) abaixo de 30% de margem</strong><small>${esc(lowMargin.slice(0,3).map(s=>s.name).join(', '))}${lowMargin.length>3?'…':''}</small></div><button class="btn secondary" onclick="render('servicos')">Revisar</button></div>`);
- if(!fixedCovered&&monthRevenue>0)alerts.push(`<div class="dash-alert warning"><span>🎯</span><div><strong>Custos fixos ainda não cobertos</strong><small>Faltam ${money(Math.abs(fixedGap))} de resultado estimado para superar a base mensal de ${money(fixedMonthly)}.</small></div></div>`);
- if(!alerts.length)alerts.push('<div class="dash-alert good"><span>✓</span><div><strong>Operação em dia</strong><small>Nenhum alerta estratégico importante encontrado agora.</small></div></div>');
+ const v46Today=parseDate(todayStr);
+ const v46Alerts=[];
+ const activeOrders=db.orders.filter(o=>!['Entregue','Cancelado'].includes(o.status));
+ const dueToday=activeOrders.filter(o=>o.dueDate===todayStr);
+ const overdueDue=activeOrders.filter(o=>o.dueDate&&o.dueDate<todayStr);
+ const semPrazo=activeOrders.filter(o=>!o.dueDate);
+
+ if(overdueDue.length){
+   v46Alerts.push(`<div class="v46-alert critical"><span>🔴</span><div><strong>${overdueDue.length} pedido(s) atrasado(s)</strong><small>Há pedidos com prazo vencido. Resolva primeiro os mais antigos.</small></div><button class="btn secondary" onclick="render('producao')">Resolver</button></div>`);
+ } else if(overdueOpen.length){
+   v46Alerts.push(`<div class="v46-alert critical"><span>🔴</span><div><strong>${overdueOpen.length} pedido(s) antigo(s) em aberto</strong><small>Existem pedidos ainda não concluídos de dias anteriores.</small></div><button class="btn secondary" onclick="render('pedidos')">Conferir</button></div>`);
+ }
+
+ if(dueToday.length){
+   v46Alerts.push(`<div class="v46-alert warning"><span>🟡</span><div><strong>${dueToday.length} pedido(s) vencem hoje</strong><small>Veja o que precisa ficar pronto ou ser entregue hoje.</small></div><button class="btn secondary" onclick="render('producao')">Ver hoje</button></div>`);
+ }
+
+ if(!overdueDue.length && !dueToday.length && semPrazo.length){
+   v46Alerts.push(`<div class="v46-alert neutral"><span>📅</span><div><strong>${semPrazo.length} pedido(s) sem prazo</strong><small>Definir prazos ajuda a organizar a produção.</small></div><button class="btn secondary" onclick="render('producao')">Organizar</button></div>`);
+ }
+
+ if(lowMargin.length){
+   v46Alerts.push(`<div class="v46-alert pink"><span>📉</span><div><strong>${lowMargin.length} serviço(s) abaixo de 30% de margem</strong><small>${esc(lowMargin.slice(0,3).map(s=>s.name).join(', '))}${lowMargin.length>3?'…':''}</small></div><button class="btn secondary" onclick="render('servicos')">Revisar</button></div>`);
+ }
+
+ if(!fixedCovered&&monthRevenue>0){
+   v46Alerts.push(`<div class="v46-alert warning"><span>🎯</span><div><strong>Custos fixos ainda não cobertos</strong><small>Faltam ${money(Math.abs(fixedGap))} de resultado estimado para superar ${money(fixedMonthly)} no mês.</small></div><button class="btn secondary" onclick="render('dashboard')">Ver meta</button></div>`);
+ }
+
+ const v46AlertCount=v46Alerts.length;
+ const v46AlertHtml=v46AlertCount
+   ? v46Alerts.slice(0,4).join('')
+   : '<div class="v46-empty"><span>✓</span><div><strong>Tudo em ordem</strong><small>Nenhum alerta importante para resolver agora.</small></div></div>';
+ const v46AlertSection=`<div class="card dash-panel dash-alerts v46-alerts"><div class="section-head"><div><h2>Atenção</h2><div class="dash-muted">${v46AlertCount?`${v46AlertCount} ponto${v46AlertCount===1?'':'s'} para acompanhar`:'Sua operação está em dia'}</div></div>${v46AlertCount?'<span class="v46-count">'+Math.min(v46AlertCount,4)+'</span>':''}</div>${v46AlertHtml}</div>`;
  let chartStart=new Date(start), chartEnd=new Date(end);
  if(period==='all'){chartEnd=new Date(startOfDay);chartStart=new Date(startOfDay);chartStart.setDate(chartStart.getDate()-13);}
  const chartDays=[];for(let d=new Date(chartStart);d<=chartEnd;d.setDate(d.getDate()+1))chartDays.push(new Date(d));
@@ -797,7 +850,7 @@ function dashboard(){
  <div class="v31-grid"><div class="card v31-card"><div class="v30-section-title"><div><h2>Clientes que mais geram faturamento</h2><div class="v31-sub">Quem merece atenção comercial no período</div></div><button class="btn secondary v31-client-btn" onclick="render('clientes')">Ver clientes</button></div><div class="v31-list">${clientHtml}</div><div class="v31-concentration"><strong>Concentração da carteira</strong><span>${concentrationText}</span></div><div class="v31-mini-kpis"><div class="v31-mini-kpi"><div class="label">Recorrentes</div><div class="value">${repeatClients}</div><small>clientes com 2+ vendas</small></div><div class="v31-mini-kpi"><div class="label">Ticket cliente</div><div class="value">${money(avgNamedTicket)}</div><small>média entre clientes identificados</small></div><div class="v31-mini-kpi"><div class="label">Faturamento identificado</div><div class="value">${money(clientRevenue)}</div><small>sem vendas de Balcão</small></div></div></div><div class="card v31-card"><div class="v30-section-title"><div><h2>Oportunidades comerciais</h2><div class="v31-sub">Próximas ações para melhorar o resultado</div></div></div><div class="v31-list">${opportunities.join('')}</div>${priority}</div></div>
  ${v43TodayActions}
  <div class="dash-grid-2"><div class="card dash-panel"><div class="section-head"><div><h2>Serviços mais vendidos</h2><div class="dash-muted">Ranking por faturamento no período</div></div><button class="btn secondary" onclick="render('servicos')">Tabela de preços</button></div><div class="dash-ranking">${topHtml}</div></div><div class="card dash-panel"><div class="section-head"><div><h2>Formas de pagamento</h2><div class="dash-muted">Distribuição do faturamento</div></div></div><div class="dash-payments">${payHtml}</div></div></div>
- <div class="card dash-panel dash-alerts"><div class="section-head"><div><h2>Alertas e ações</h2><div class="dash-muted">Pontos que merecem atenção</div></div></div>${alerts.join('')}</div>
+ ${v46AlertSection}
  <div class="quick-sales"><div class="quick-sale-card sale"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🛒</div><div><h3>Registrar uma venda</h3><p>Venda feita no balcão? Lance aqui rapidamente.</p></div></div><button class="btn primary" onclick="newOrder()">+ Nova venda</button></div><div class="quick-sale-card quote"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="qs-icon">🧾</div><div><h3>Criar orçamento</h3><p>Monte um orçamento para enviar ao cliente.</p></div></div><button class="btn pink" onclick="newQuote()">Novo orçamento</button></div></div>
  <div class="section card dashboard-sales"><div class="section-head"><div><h2>Vendas recentes</h2><div class="sales-count">${db.orders.filter(o=>o.date===todayStr&&o.status!=='Cancelado').length} venda(s) hoje • ${validOrders.length} no período</div></div><button class="btn secondary" onclick="render('pedidos')">Ver vendas</button></div>${orderTable(db.orders.filter(o=>o.status!=='Cancelado').slice().sort((a,b)=>b.id-a.id).slice(0,8))}</div>
  <div class="v30-note-box" style="margin-top:12px">* Resultado após fixos é uma estimativa gerencial: lucro estimado das vendas do mês menos os custos fixos cadastrados. Não substitui um fechamento contábil.</div>`;
