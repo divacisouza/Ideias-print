@@ -2008,7 +2008,7 @@ setTimeout(v4Render,500);
     const email=document.getElementById('v22ResetEmail').value.trim();
     if(!email)return setMsg('Informe seu e-mail para recuperar a senha.');
     setMsg('Enviando link de recuperação...');
-    const redirectTo=window.location.origin+window.location.pathname;
+    const redirectTo='https://ideias-print.pages.dev/';
     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
     if(error)return setMsg(error.message);
     setMsg('Link enviado. Verifique seu e-mail para criar uma nova senha.',true);
