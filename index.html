@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V42</title>
+<title>Ideias Print — Gestão Online V42 Simplificado</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -456,16 +456,7 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 </style>
 
-<style id="v42-sales-fast">
-.v42-quickbar{margin:0 0 12px;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:#fafbfc}
-.v42-quickbar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.v42-quickbar-head strong{font-size:12px}.v42-quickbar-head span{font-size:10px;color:var(--muted)}
-.v42-chips{display:flex;gap:7px;flex-wrap:wrap}
-.v42-chip{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:700;color:#333;cursor:pointer}
-.v42-chip:hover{border-color:var(--blue);transform:translateY(-1px)}
-.v42-recent-services{margin-top:9px}.v42-service-chip{background:#f7f8fa}.v42-empty{font-size:10px;color:var(--muted)}
-@media(max-width:600px){.v42-quickbar{padding:11px}.v42-chip{padding:8px 9px}}
-</style>
+
 </head>
 <body>
 <div class="app">
@@ -995,11 +986,6 @@ function setOrderStatus(id,ns){
  save();render('pedidos');toast(`Pedido #${id}: ${ns}.`);
 }
 
-function v42RecentClientData(){const counts={};(db.orders||[]).filter(o=>o.status!=='Cancelado').forEach(o=>{const id=String(o.clientId||'');if(id)counts[id]=(counts[id]||0)+1});return (db.clients||[]).filter(c=>counts[String(c.id)]).sort((a,b)=>(counts[String(b.id)]||0)-(counts[String(a.id)]||0)).slice(0,4)}
-function v42RecentServiceData(){const counts={};(db.orders||[]).filter(o=>o.status!=='Cancelado').forEach(o=>(o.items||[]).forEach(i=>{const id=String(i.serviceId||'');if(id)counts[id]=(counts[id]||0)+Number(i.qty||0)}));return (db.services||[]).filter(s=>counts[String(s.id)]).sort((a,b)=>(counts[String(b.id)]||0)-(counts[String(a.id)]||0)).slice(0,4)}
-function v42SelectClient(id){const el=document.getElementById('qclient');if(!el)return;el.value=String(id);el.dispatchEvent(new Event('change',{bubbles:true}))}
-function v42SelectService(id){const rows=[...document.querySelectorAll('#items .itemrow')],target=rows.find(r=>!r.querySelector('.item-service')?.value)||rows[rows.length-1];if(!target)return;const sel=target.querySelector('.item-service');if(!sel)return;sel.value=String(id);sel.dispatchEvent(new Event('change',{bubbles:true}))}
-function v42RenderQuickbar(){const root=document.getElementById('v42Quickbar');if(!root)return;const clients=v42RecentClientData(),services=v42RecentServiceData();root.innerHTML=`<div class="v42-quickbar-head"><strong>⚡ Atalhos rápidos</strong><span>toque para preencher</span></div><div class="v42-chips">${clients.length?clients.map(c=>`<button type="button" class="v42-chip" onclick="v42SelectClient(${c.id})">👤 ${esc(c.name)}</button>`).join(''):'<span class="v42-empty">Clientes frequentes aparecerão aqui.</span>'}</div><div class="v42-chips v42-recent-services">${services.length?services.map(s=>`<button type="button" class="v42-chip v42-service-chip" onclick="v42SelectService(${s.id})">🖨️ ${esc(s.name)}</button>`).join(''):'<span class="v42-empty">Serviços mais usados aparecerão aqui.</span>'}</div>`}
 function newOrder(preselectedClientId=''){
  openModal('Nova venda / pedido',`
  <div class="formgrid">
@@ -1010,8 +996,7 @@ function newOrder(preselectedClientId=''){
     <button type="button" class="btn secondary" onclick="quickNewClient()">+ Novo cliente</button>
    </div>
   </div>
-   <div id="v42Quickbar" class="v42-quickbar full"></div>
-  <div class="field"><label>Forma de pagamento</label><select id="qpay"><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>A pagar</option></select></div>
+   <div class="field"><label>Forma de pagamento</label><select id="qpay"><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>A pagar</option></select></div>
   <div class="field"><label>Prazo de entrega</label><input id="qDueDate" type="date"></div>
   <div class="field"><label>Status do pedido</label><select id="qstatus"><option selected>Em produção</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select></div>
   <div class="field full"><label>Observação</label><input id="orderObs" placeholder="Prazo, retirada, detalhes..."></div>
@@ -1031,7 +1016,6 @@ function newOrder(preselectedClientId=''){
  </div>
  <div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveOrder()">Registrar venda</button></div>`);
  addItem();
-  v42RenderQuickbar();
 }
 
 function getOrderDiscount(subtotal, value, type){
@@ -1698,7 +1682,7 @@ setTimeout(v4Render,500);
   </div>
 </div>
 <script>document.getElementById("v13AuthLogo").src=LOGIN_LOGO;</script>
-<div class="v13-cloud-badge">☁️ <span>V42 Online</span></div>
+<div class="v13-cloud-badge">☁️ <span>V42 Simplificado Online</span></div>
 <div id="v13Userbar" class="v13-userbar" style="display:none">
   <span id="v13UserEmail"></span>
   <button id="v13LogoutBtn">Sair</button>
