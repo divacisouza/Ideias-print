@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ideias Print — Gestão Online V46</title>
+<title>Ideias Print — Gestão Online V47</title>
 <style>
 select.item-service, select.client-select, #qclient{min-width:280px;min-height:42px;font-size:15px}
 :root{--blue:#00afe9;--pink:#eb268f;--yellow:#fff112;--black:#101114;--bg:#f5f6f8;--card:#fff;--muted:#68707b;--line:#e5e7eb;--green:#18a66a;--red:#d84b4b}
@@ -494,6 +494,76 @@ html,body{max-width:100%;overflow-x:hidden}
   .v46-alert .btn{font-size:10px;padding:6px 8px}
   .v46-alert small{white-space:normal;line-height:1.3}
 }
+</style>
+
+
+<style id="v47-ux">
+/* V47 — Revisão geral / experiência de uso */
+html{scroll-behavior:smooth}
+body{overflow-x:hidden}
+button,.btn,input,select{touch-action:manipulation}
+.btn{min-height:40px}
+.table-wrap{-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.nav button{transition:background .15s ease,transform .15s ease}
+.nav button:active{transform:scale(.985)}
+.card{overflow:hidden}
+.section-head,.v30-section-title{gap:10px}
+.actions{flex-wrap:wrap}
+.actions .btn{min-width:110px}
+
+/* Formulários: mesma leitura visual em todas as telas */
+.field input,.field select,.orc-field input,.orc-field select,.orc-select,
+.production-toolbar input,.production-toolbar select,.cash-toolbar input,.cash-toolbar select{
+  min-height:42px;
+}
+
+/* Modais mais confortáveis no celular */
+@media(max-width:700px){
+  main{padding:13px}
+  .top{margin-bottom:16px;gap:10px}
+  .top h1{font-size:21px}
+  .top p{font-size:12px}
+  .card{padding:14px;border-radius:13px}
+  .section{margin-top:14px}
+  .section-head h2,.v30-section-title h2{font-size:16px}
+  .btn{padding:9px 12px;min-height:40px}
+  .modal{align-items:flex-end;padding:0}
+  .modalbox{
+    width:100%;
+    max-width:none;
+    max-height:92vh;
+    border-radius:18px 18px 0 0;
+    padding:15px;
+    box-shadow:0 -8px 30px #0002;
+  }
+  .modalhead{position:sticky;top:-15px;z-index:2;background:#fff;padding:3px 0 10px;margin-bottom:10px}
+  .modalbox .actions{
+    position:sticky;
+    bottom:-15px;
+    z-index:2;
+    background:#fff;
+    padding:10px 0 15px;
+    margin:12px 0 -15px;
+    border-top:1px solid var(--line);
+  }
+  .modalbox .actions .btn{flex:1;min-width:0}
+}
+
+/* Tela pequena: navegação e ações ficam mais próximas de um app */
+@media(max-width:520px){
+  main{padding:10px}
+  .nav button{min-height:44px}
+  .stats{gap:10px}
+  .stat .value{font-size:22px}
+  .quick-sales{gap:10px}
+  .quick-sale-card{padding:13px}
+  .quick-sale-card .btn{width:100%;margin-top:8px}
+  .v43-today,.v46-alerts{border-radius:13px}
+  .actions{gap:7px}
+}
+
+/* Área de toque segura para fechar modal */
+.x{min-width:34px;min-height:34px}
 </style>
 
 </head>
