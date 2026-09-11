@@ -2198,10 +2198,10 @@ setTimeout(v4Render,500);
       openModal('👤 Usuários',body);
     }catch(e){console.error('admin-users list',e);notify('Não foi possível carregar os usuários.');}
   }
-  function v48NewUser(){
+  window.v48NewUser=function(){
     openModal('Novo usuário',`<div class="v48-form"><label>Nome</label><input id="v48Name" placeholder="Nome completo"><label>E-mail</label><input id="v48Email" type="email" placeholder="E-mail de acesso"><label>Nível de acesso</label><select id="v48Role"><option value="atendente">Atendente</option><option value="gerente">Gerente</option><option value="producao">Produção</option><option value="admin">Administrador</option></select><div class="v48-muted">O convite para definir a senha será enviado ao e-mail informado.</div><button class="btn primary" onclick="v48CreateUser()">Enviar convite</button></div>`);
-  }
-  async function v48CreateUser(){
+  };
+  window.v48CreateUser=async function(){
     const name=document.getElementById('v48Name')?.value.trim(),email=document.getElementById('v48Email')?.value.trim(),role=document.getElementById('v48Role')?.value;
     if(!name||!email){notify('Informe nome e e-mail.');return}
     try{
@@ -2214,7 +2214,7 @@ setTimeout(v4Render,500);
       console.error('admin-users invite',e);
       notify('Não foi possível criar o usuário: '+(e?.message||'verifique o e-mail e tente novamente.'));
     }
-  }
+  };
   window.v48EditRole=async function(id,current){
     openModal('Alterar nível',`<div class="v48-form"><label>Novo nível</label><select id="v48EditRole"><option value="atendente" ${current==='atendente'?'selected':''}>Atendente</option><option value="gerente" ${current==='gerente'?'selected':''}>Gerente</option><option value="producao" ${current==='producao'?'selected':''}>Produção</option><option value="admin" ${current==='admin'?'selected':''}>Administrador</option></select><button class="btn primary" onclick="v48SaveRole('${id}')">Salvar</button></div>`);
   };
