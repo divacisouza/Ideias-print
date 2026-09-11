@@ -566,7 +566,9 @@ button,.btn,input,select{touch-action:manipulation}
 .x{min-width:34px;min-height:34px}
 </style>
 
-</head>
+<style>
+.v48-temp-password{margin-top:12px;padding:12px;border:1px solid #dfe4ea;border-radius:12px;background:#f7f9fb;font-size:13px}.v48-temp-password code{display:block;margin-top:7px;padding:10px;border-radius:9px;background:#101114;color:#fff;font-weight:900;letter-spacing:1px;font-size:16px;text-align:center}.v48-warning{margin-top:10px;font-size:12px;line-height:1.45;color:#7a5a00;background:#fff7df;border:1px solid #f0d98a;border-radius:10px;padding:10px}.v48-first-login{display:grid;gap:10px}.v48-first-login input{width:100%;height:44px;box-sizing:border-box;border:1px solid #dfe3e8;border-radius:10px;padding:0 12px;font-size:14px}.v48-first-login button{height:44px;border:0;border-radius:10px;background:#101114;color:#fff;font-weight:800;cursor:pointer}
+</style></head>
 <body>
 <div class="app">
 <aside>
@@ -2144,6 +2146,7 @@ setTimeout(v4Render,500);
     const p=r.data; if(!p)return null;
     return {...p,email:user.email||''};
   }
+  let v48PasswordGateOpen=false;
   async function syncSession(session){
     if(!session?.user){me=null;ready=false;applyNav();return}
     try{
@@ -2151,8 +2154,24 @@ setTimeout(v4Render,500);
       if(!p || p.active===false){await sb().auth.signOut();notify('Usuário bloqueado ou sem perfil ativo.');return}
       me=p; ready=true; applyNav();
       if(window.__ipV48StartResolve)window.__ipV48StartResolve(p);
+      if(p.must_change_password && !v48PasswordGateOpen) setTimeout(v48ForcePasswordChange,180);
     }catch(e){console.error(e);notify('Não foi possível validar seu perfil de acesso.');}
   }
+  function v48ForcePasswordChange(){
+    if(v48PasswordGateOpen)return; v48PasswordGateOpen=true;
+    openModal('🔐 Primeiro acesso',`<div class="v48-first-login"><div class="v48-muted">Por segurança, troque sua senha provisória antes de continuar.</div><label>Nova senha</label><input id="v48FirstPass" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres"><label>Confirmar nova senha</label><input id="v48FirstPass2" type="password" autocomplete="new-password" placeholder="Repita a nova senha"><button type="button" onclick="v48SaveFirstPassword()">Salvar nova senha</button></div>`);
+  }
+  window.v48SaveFirstPassword=async function(){
+    const p1=document.getElementById('v48FirstPass')?.value||'',p2=document.getElementById('v48FirstPass2')?.value||'';
+    if(p1.length<8)return notify('A nova senha precisa ter pelo menos 8 caracteres.');
+    if(p1!==p2)return notify('As senhas não conferem.');
+    try{
+      const a=await sb().auth.updateUser({password:p1}); if(a.error)throw a.error;
+      const u=await sb().auth.getUser(); if(u.error)throw u.error;
+      const r=await sb().from('profiles').update({must_change_password:false}).eq('id',u.data.user.id); if(r.error)throw r.error;
+      me={...me,must_change_password:false}; v48PasswordGateOpen=false; closeModal(); notify('Senha alterada. Bem-vindo à Ideias Print!',true);
+    }catch(e){console.error('first password',e);notify('Não foi possível alterar a senha: '+(e?.message||'tente novamente.'));}
+  };
   function patchRender(){
     if(booted)return;
     if(typeof window.render!=='function')return;
@@ -2199,20 +2218,21 @@ setTimeout(v4Render,500);
     }catch(e){console.error('admin-users list',e);notify('Não foi possível carregar os usuários.');}
   }
   window.v48NewUser=function(){
-    openModal('Novo usuário',`<div class="v48-form"><label>Nome</label><input id="v48Name" placeholder="Nome completo"><label>E-mail</label><input id="v48Email" type="email" placeholder="E-mail de acesso"><label>Nível de acesso</label><select id="v48Role"><option value="atendente">Atendente</option><option value="gerente">Gerente</option><option value="producao">Produção</option><option value="admin">Administrador</option></select><div class="v48-muted">O convite para definir a senha será enviado ao e-mail informado.</div><button class="btn primary" onclick="v48CreateUser()">Enviar convite</button></div>`);
+    openModal('Novo usuário',`<div class="v48-form"><label>Nome</label><input id="v48Name" placeholder="Nome completo"><label>E-mail</label><input id="v48Email" type="email" placeholder="E-mail de acesso"><label>Nível de acesso</label><select id="v48Role"><option value="atendente">Atendente</option><option value="gerente">Gerente</option><option value="producao">Produção</option><option value="admin">Administrador</option></select><div class="v48-muted">O sistema vai gerar uma senha provisória. No primeiro acesso, o usuário será obrigado a criar uma senha própria.</div><button class="btn primary" onclick="v48CreateUser()">Criar usuário</button></div>`);
   };
   window.v48CreateUser=async function(){
     const name=document.getElementById('v48Name')?.value.trim(),email=document.getElementById('v48Email')?.value.trim(),role=document.getElementById('v48Role')?.value;
     if(!name||!email){notify('Informe nome e e-mail.');return}
     try{
-      const r=await sb().functions.invoke('admin-users',{body:{action:'invite',full_name:name,email,role}});
+      const r=await sb().functions.invoke('admin-users',{body:{action:'create',full_name:name,email,role}});
       if(r.error) throw r.error;
       if(r.data?.error) throw new Error(r.data.error);
-      notify('Usuário criado. O convite foi enviado por e-mail.');
-      await usuariosPanel();
+      const temp=r.data?.temporary_password||'';
+      closeModal();
+      openModal('Usuário criado',`<div class="v48-muted">${esc(name)} foi criado com nível <b>${esc(roleName(role))}</b>.</div><div class="v48-temp-password">Senha provisória:<code>${esc(temp)}</code></div><div class="v48-warning">A senha provisória é exibida uma única vez. Entregue-a ao usuário por um canal seguro. No primeiro login, ele deverá criar uma nova senha.</div><button class="btn primary" style="margin-top:12px" onclick="usuariosPanel()">Concluir</button>`);
     }catch(e){
-      console.error('admin-users invite',e);
-      notify('Não foi possível criar o usuário: '+(e?.message||'verifique o e-mail e tente novamente.'));
+      console.error('admin-users create',e);
+      notify('Não foi possível criar o usuário: '+(e?.message||'verifique os dados e tente novamente.'));
     }
   };
   window.v48EditRole=async function(id,current){
