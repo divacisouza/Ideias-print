@@ -2187,7 +2187,8 @@ setTimeout(v4Render,500);
   async function loadUsers(){
     const r=await sb().functions.invoke('admin-users',{body:{action:'list'}});
     if(r.error)throw r.error;
-    const data=r.data||{}; return Array.isArray(data.users)?data.users:[];
+    const data=r.data||{};
+    return Array.isArray(data)?data:(Array.isArray(data.users)?data.users:[]);
   }
   async function usuariosPanel(){
     if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return}
@@ -2203,7 +2204,16 @@ setTimeout(v4Render,500);
   async function v48CreateUser(){
     const name=document.getElementById('v48Name')?.value.trim(),email=document.getElementById('v48Email')?.value.trim(),role=document.getElementById('v48Role')?.value;
     if(!name||!email){notify('Informe nome e e-mail.');return}
-    try{const r=await sb().functions.invoke('admin-users',{body:{action:'invite',full_name:name,email,role}});if(r.error)throw r.error;notify('Convite enviado.');await usuariosPanel()}catch(e){console.error(e);notify('Não foi possível criar o usuário.');}
+    try{
+      const r=await sb().functions.invoke('admin-users',{body:{action:'invite',full_name:name,email,role}});
+      if(r.error) throw r.error;
+      if(r.data?.error) throw new Error(r.data.error);
+      notify('Usuário criado. O convite foi enviado por e-mail.');
+      await usuariosPanel();
+    }catch(e){
+      console.error('admin-users invite',e);
+      notify('Não foi possível criar o usuário: '+(e?.message||'verifique o e-mail e tente novamente.'));
+    }
   }
   window.v48EditRole=async function(id,current){
     openModal('Alterar nível',`<div class="v48-form"><label>Novo nível</label><select id="v48EditRole"><option value="atendente" ${current==='atendente'?'selected':''}>Atendente</option><option value="gerente" ${current==='gerente'?'selected':''}>Gerente</option><option value="producao" ${current==='producao'?'selected':''}>Produção</option><option value="admin" ${current==='admin'?'selected':''}>Administrador</option></select><button class="btn primary" onclick="v48SaveRole('${id}')">Salvar</button></div>`);
