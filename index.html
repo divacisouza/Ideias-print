@@ -2188,9 +2188,21 @@ setTimeout(v4Render,500);
     for(let i=0;i<100 && !sb();i++) await new Promise(r=>setTimeout(r,50));
     if(!sb()){console.warn('V48: Supabase não inicializou');return}
     patchRender();
+    const recoveryHash=new URLSearchParams((window.location.hash||'').replace(/^#/,'')).get('type')==='recovery';
     const {data:{session}}=await sb().auth.getSession();
     await syncSession(session);
+    if(recoveryHash){
+      setTimeout(()=>{
+        const gate=document.getElementById('v22RecoveryGate');
+        if(gate) gate.style.display='flex';
+      },50);
+    }
     sb().auth.onAuthStateChange((event,s)=>{
+      if(event==='PASSWORD_RECOVERY'){
+        const gate=document.getElementById('v22RecoveryGate');
+        if(gate) gate.style.display='flex';
+        return;
+      }
       if(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED'||event==='SIGNED_OUT')setTimeout(()=>syncSession(s),0);
     });
   }
