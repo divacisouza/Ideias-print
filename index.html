@@ -584,6 +584,7 @@ button,.btn,input,select{touch-action:manipulation}
     <button data-page="custos">📊 &nbsp;Custos</button>
     <button data-page="backup">💾 &nbsp;Backup</button>
     <button data-page="producao">🏭 &nbsp;Produção</button>
+    <button data-page="configuracoes">⚙️ &nbsp;Configurações</button>
     <button id="sideLogoutBtn" type="button">🚪 &nbsp;SAIR</button>
   </div>
 </aside>
@@ -2117,7 +2118,7 @@ setTimeout(v4Render,500);
 (function(){
   'use strict';
   const PERMS={
-    admin:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','calculadora','custos','backup','producao','usuarios'],
+    admin:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','calculadora','custos','backup','producao','configuracoes','usuarios'],
     gerente:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','calculadora','custos','producao'],
     atendente:['dashboard','orcamentos','pedidos','clientes','producao'],
     producao:['dashboard','pedidos','producao']
@@ -2178,6 +2179,7 @@ setTimeout(v4Render,500);
     originalRender=window.render;
     window.render=function(page='dashboard'){
       if(page==='usuarios'){if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return} return usuariosPanel();}
+      if(page==='configuracoes'){if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return} return configuracoesPanel();}
       if(ready && !allowed(page)){notify('Seu nível de acesso não permite abrir esta área.');page='dashboard'}
       const r=originalRender.apply(this,[page]);
       setTimeout(applyNav,0); return r;
@@ -2221,6 +2223,45 @@ setTimeout(v4Render,500);
     const data=r.data||{};
     return Array.isArray(data)?data:(Array.isArray(data.users)?data.users:[]);
   }
+  async function loadAppConfig(){
+    try{
+      const {data,error}=await sb().from('settings').select('value').eq('key','__app_config__').maybeSingle();
+      if(error)throw error;
+      return (data?.value&&typeof data.value==='object')?data.value:{};
+    }catch(e){console.error('app config load',e);return {};}
+  }
+  async function saveAppConfig(config){
+    const {error}=await sb().from('settings').upsert({key:'__app_config__',value:config,updated_at:new Date().toISOString()},{onConflict:'key'});
+    if(error)throw error;
+  }
+  async function configuracoesPanel(){
+    if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return}
+    const c=await loadAppConfig();
+    const body=`<div class="v48-form">
+      <div class="v48-muted">Parâmetros gerais da Ideias Print. Estas configurações ficam salvas na nuvem e só o Administrador pode alterá-las.</div>
+      <label>Nome da empresa</label><input id="v48CfgName" value="${esc(c.company_name||'Ideias Print')}" placeholder="Nome da gráfica">
+      <label>CNPJ</label><input id="v48CfgCnpj" value="${esc(c.cnpj||'')}" placeholder="00.000.000/0000-00">
+      <label>Telefone / WhatsApp</label><input id="v48CfgPhone" value="${esc(c.phone||'')}" placeholder="(00) 00000-0000">
+      <label>E-mail</label><input id="v48CfgEmail" type="email" value="${esc(c.email||'')}" placeholder="contato@empresa.com">
+      <label>Endereço</label><input id="v48CfgAddress" value="${esc(c.address||'')}" placeholder="Endereço da gráfica">
+      <label>Validade padrão do orçamento (dias)</label><input id="v48CfgValidity" type="number" min="1" max="365" value="${Number(c.quote_validity_days||7)}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"><button class="btn primary" onclick="v48SaveConfig()">Salvar configurações</button><button class="btn secondary" onclick="closeModal()">Cancelar</button></div>
+    </div>`;
+    openModal('⚙️ Configurações',body);
+  }
+  window.v48SaveConfig=async function(){
+    const config={
+      company_name:document.getElementById('v48CfgName')?.value.trim()||'Ideias Print',
+      cnpj:document.getElementById('v48CfgCnpj')?.value.trim()||'',
+      phone:document.getElementById('v48CfgPhone')?.value.trim()||'',
+      email:document.getElementById('v48CfgEmail')?.value.trim()||'',
+      address:document.getElementById('v48CfgAddress')?.value.trim()||'',
+      quote_validity_days:Math.max(1,Math.min(365,Number(document.getElementById('v48CfgValidity')?.value||7)))
+    };
+    try{await saveAppConfig(config);notify('Configurações salvas.');closeModal();}
+    catch(e){console.error('app config save',e);notify('Não foi possível salvar as configurações.');}
+  };
+
   async function usuariosPanel(){
     if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return}
     try{
@@ -2262,7 +2303,7 @@ setTimeout(v4Render,500);
   function addMenu(){
     const nav=document.querySelector('.nav'); if(!nav||document.getElementById('v48NavUsuarios'))return;
     const b=document.createElement('button'); b.id='v48NavUsuarios';b.dataset.page='usuarios';b.type='button';b.innerHTML='👤 &nbsp;Usuários';b.style.display='none';
-    const logout=document.getElementById('sideLogoutBtn');nav.insertBefore(b,logout||null);b.onclick=()=>usuariosPanel();applyNav();
+    const logout=document.getElementById('sideLogoutBtn');nav.insertBefore(b,logout||null);b.onclick=()=>usuariosPanel(); const c=document.querySelector('.nav button[data-page="configuracoes"]'); if(c)c.onclick=()=>configuracoesPanel(); applyNav();
   }
   // role badge next to user email
   function addBadge(){const bar=document.getElementById('v13Userbar');if(!bar||document.getElementById('v48RoleBadge'))return;const s=document.createElement('span');s.id='v48RoleBadge';s.className='v48-role';bar.insertBefore(s,bar.querySelector('button')||null)}
