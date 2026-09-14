@@ -580,6 +580,7 @@ button,.btn,input,select{touch-action:manipulation}
     <button data-page="clientes">👥 &nbsp;Clientes</button>
     <button data-page="servicos">🖨️ &nbsp;Serviços</button>
     <button data-page="caixa">💰 &nbsp;Caixa</button>
+    <button data-page="financeiro">📈 &nbsp;Financeiro</button>
     <button data-page="calculadora">🧮 &nbsp;Calculadora</button>
     <button data-page="custos">📊 &nbsp;Custos</button>
     <button data-page="backup">💾 &nbsp;Backup</button>
@@ -701,7 +702,7 @@ function closeModal(){document.getElementById('modal').classList.remove('open')}
 
 function render(page='dashboard'){
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
- const titles={dashboard:['Dashboard','Visão geral da sua gráfica'],orcamentos:['Orçamentos','Crie e acompanhe seus orçamentos'],pedidos:['Vendas e Pedidos','Registre vendas e acompanhe a produção'],clientes:['Clientes','Cadastro de clientes'],servicos:['Serviços','Sua tabela de serviços e preços'],caixa:['Caixa','Entradas e saídas'],calculadora:['Calculadora Profissional','Forme o preço certo e proteja sua margem'],backup:['Backup e segurança','Salve ou restaure os dados do sistema'],producao:['Produção','Organize a fila, prazos e entregas'],custos:['Ficha de custos','Custos reais e parâmetros da Ideias Print']};
+ const titles={dashboard:['Dashboard','Visão geral da sua gráfica'],orcamentos:['Orçamentos','Crie e acompanhe seus orçamentos'],pedidos:['Vendas e Pedidos','Registre vendas e acompanhe a produção'],clientes:['Clientes','Cadastro de clientes'],servicos:['Serviços','Sua tabela de serviços e preços'],caixa:['Caixa','Entradas e saídas'],financeiro:['Financeiro','Contas a receber, contas a pagar e resultado'],calculadora:['Calculadora Profissional','Forme o preço certo e proteja sua margem'],backup:['Backup e segurança','Salve ou restaure os dados do sistema'],producao:['Produção','Organize a fila, prazos e entregas'],custos:['Ficha de custos','Custos reais e parâmetros da Ideias Print']};
  const [title,sub]=titles[page]; document.getElementById('content').innerHTML=`<div class="top"><div><h1>${title}</h1><p>${sub}</p></div>${page==='dashboard'?'<button class="btn primary" onclick="newOrder()">+ Nova venda</button>':''}</div><div id="page"></div>`;
  ({dashboard:dashboard,orcamentos:quotes,pedidos:orders,clientes:clients,servicos:services,caixa:cash,calculadora:calculator,custos:costs,backup:backup,producao:production}[page])();
 }
@@ -2118,8 +2119,8 @@ setTimeout(v4Render,500);
 (function(){
   'use strict';
   const PERMS={
-    admin:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','calculadora','custos','backup','producao','configuracoes','usuarios'],
-    gerente:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','calculadora','custos','producao'],
+    admin:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','financeiro','calculadora','custos','backup','producao','configuracoes','usuarios'],
+    gerente:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','financeiro','calculadora','custos','producao'],
     atendente:['dashboard','orcamentos','pedidos','clientes','producao'],
     producao:['dashboard','pedidos','producao']
   };
@@ -2310,6 +2311,46 @@ setTimeout(v4Render,500);
   const readyDom=()=>{addMenu();addBadge();patchRender();applyNav()};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',readyDom);else readyDom();
   boot();
+})();
+</script>
+
+<style id="v48-financeiro-css">
+.v48-fin{display:grid;gap:16px}.v48-fin-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.v48-fin-kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:0 5px 18px rgba(0,0,0,.035)}.v48-fin-kpi span{display:block;font-size:11px;color:var(--muted)}.v48-fin-kpi b{display:block;font-size:22px;margin-top:5px;letter-spacing:-.02em}.v48-fin-kpi small{display:block;font-size:10px;color:var(--muted);margin-top:4px}.v48-fin-tabs{display:flex;gap:8px;flex-wrap:wrap}.v48-fin-tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer}.v48-fin-tab.active{background:#111;color:#fff;border-color:#111}.v48-fin-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}.v48-fin-table{overflow:auto}.v48-fin-table table{width:100%;border-collapse:collapse}.v48-fin-table th,.v48-fin-table td{padding:10px 9px;border-bottom:1px solid #edf0f2;text-align:left;font-size:12px;white-space:nowrap}.v48-fin-table th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.v48-fin-status{display:inline-flex;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800;background:#f0f2f4}.v48-fin-status.pago{background:#eaf7ef;color:#19713a}.v48-fin-status.pendente{background:#fff6df;color:#8a6200}.v48-fin-status.atrasado{background:#ffe9e9;color:#a52525}.v48-fin-empty{padding:24px;text-align:center;color:var(--muted);font-size:12px}.v48-fin-note{font-size:11px;color:var(--muted);line-height:1.45}.v48-fin-actions{display:flex;gap:6px}.v48-fin-actions button{font-size:10px;padding:6px 8px}.v48-fin-danger{color:#a52525}
+@media(max-width:900px){.v48-fin-kpis{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.v48-fin-kpis{grid-template-columns:1fr 1fr}.v48-fin-kpi b{font-size:18px}.v48-fin-table th,.v48-fin-table td{padding:9px 7px}.v48-fin-toolbar{align-items:stretch}.v48-fin-toolbar .btn{width:100%}}
+</style>
+
+<script id="v48-financeiro-js">
+(function(){
+'use strict';
+const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function dbx(){window.db=window.db||{};window.db.receivables=Array.isArray(window.db.receivables)?window.db.receivables:[];window.db.payables=Array.isArray(window.db.payables)?window.db.payables:[];return window.db}
+function savex(){if(typeof window.save==='function')window.save();else localStorage.setItem('graficaDB',JSON.stringify(dbx()))}
+function today(){return new Date().toISOString().slice(0,10)}
+function monthStart(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10)}
+function statusFor(x){if(x.status==='pago')return 'pago';if(x.status==='pendente'&&x.due_date&&x.due_date<today())return 'atrasado';return x.status||'pendente'}
+function statusLabel(s){return s==='pago'?'Pago':s==='atrasado'?'Atrasado':'Pendente'}
+function receivablesFromOrders(){
+ const d=dbx(), rows=(d.orders||[]).map(o=>{const total=Number(o.total||0);if(total<=0||String(o.status||'').toLowerCase()==='cancelado')return null;const paid=String(o.paymentStatus||o.paidStatus||'').toLowerCase()==='pago'||String(o.payment_status||'').toLowerCase()==='pago';return {id:'order-'+o.id,source:'pedido',source_id:o.id,description:'Pedido #'+(o.number||o.orderNumber||o.id||''),customer:o.clientName||o.client||o.customerName||'Cliente',amount:total,due_date:o.dueDate||o.due_date||o.date||today(),status:paid?'pago':'pendente',method:o.payment||o.paymentMethod||''};}).filter(Boolean);
+ const manual=d.receivables||[];const ids=new Set(manual.map(x=>String(x.source_id||'')));return receivablesFromOrders._merge=[...manual,...rows.filter(x=>!ids.has(String(x.source_id||'')))];
+}
+function totals(){const d=dbx(), r=receivablesFromOrders(), p=d.payables||[];const recPend=r.filter(x=>statusFor(x)!=='pago').reduce((a,x)=>a+Number(x.amount||0),0);const recPaid=r.filter(x=>statusFor(x)==='pago').reduce((a,x)=>a+Number(x.amount||0),0);const payPend=p.filter(x=>statusFor(x)!=='pago').reduce((a,x)=>a+Number(x.amount||0),0);const payPaid=p.filter(x=>statusFor(x)==='pago').reduce((a,x)=>a+Number(x.amount||0),0);return{r,p,recPend,recPaid,payPend,payPaid,balance:recPaid+Number((d.cash||[]).filter(x=>x.type==='entrada').reduce((a,x)=>a+Number(x.value||0),0))-payPaid-Number((d.cash||[]).filter(x=>x.type==='saida').reduce((a,x)=>a+Number(x.value||0),0))}}
+let tab='receber';
+window.financeiro=function(){
+ const t=totals(),d=dbx();
+ document.getElementById('page').innerHTML=`<div class="v48-fin"><div class="page-header"><h1>📈 Financeiro</h1><p>Controle do que entrou, do que está para receber e do que precisa ser pago.</p></div>
+ <div class="v48-fin-kpis"><div class="v48-fin-kpi"><span>A receber</span><b>${money(t.recPend)}</b><small>pendências de clientes</small></div><div class="v48-fin-kpi"><span>A pagar</span><b>${money(t.payPend)}</b><small>despesas pendentes</small></div><div class="v48-fin-kpi"><span>Recebido</span><b>${money(t.recPaid)}</b><small>contas marcadas como pagas</small></div><div class="v48-fin-kpi"><span>Resultado realizado</span><b>${money(t.balance)}</b><small>caixa + recebimentos − pagamentos</small></div></div>
+ <div class="card"><div class="v48-fin-toolbar"><div class="v48-fin-tabs"><button class="v48-fin-tab ${tab==='receber'?'active':''}" onclick="v48FinTab('receber')">A receber</button><button class="v48-fin-tab ${tab==='pagar'?'active':''}" onclick="v48FinTab('pagar')">A pagar</button></div><button class="btn primary" onclick="v48FinNew('${tab}')">+ Novo lançamento</button></div><div class="v48-fin-note" style="margin-top:10px">Pedidos aparecem automaticamente em “A receber” quando têm valor. Use os lançamentos manuais para despesas, fornecedores e outras obrigações.</div><div class="v48-fin-table" style="margin-top:12px">${tab==='receber'?receberHtml(t.r):pagarHtml(t.p)}</div></div></div>`;
+}
+function receberHtml(rows){if(!rows.length)return '<div class="v48-fin-empty">Nenhuma conta a receber encontrada.</div>';return `<table><thead><tr><th>Vencimento</th><th>Cliente</th><th>Descrição</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>${rows.slice().sort((a,b)=>String(a.due_date).localeCompare(String(b.due_date))).map(x=>{const st=statusFor(x);return `<tr><td>${String(x.due_date||'').split('-').reverse().join('/')||'-'}</td><td>${esc(x.customer||'Cliente')}</td><td>${esc(x.description||'-')}</td><td><b>${money(x.amount)}</b></td><td><span class="v48-fin-status ${st}">${statusLabel(st)}</span></td><td><div class="v48-fin-actions">${st!=='pago'?`<button class="btn secondary" onclick="v48FinPay('receber','${esc(x.id)}')">Marcar pago</button>`:''}${String(x.id).startsWith('order-')?'':'<button class="btn secondary v48-fin-danger" onclick="v48FinDelete(\'receber\',\''+esc(x.id)+'\')">Excluir</button>'}</div></td></tr>`}).join('')}</tbody></table>`}
+function pagarHtml(rows){if(!rows.length)return '<div class="v48-fin-empty">Nenhuma conta a pagar cadastrada.</div>';return `<table><thead><tr><th>Vencimento</th><th>Fornecedor</th><th>Descrição</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>${rows.slice().sort((a,b)=>String(a.due_date).localeCompare(String(b.due_date))).map(x=>{const st=statusFor(x);return `<tr><td>${String(x.due_date||'').split('-').reverse().join('/')||'-'}</td><td>${esc(x.supplier||'-')}</td><td>${esc(x.description||'-')}</td><td><b>${money(x.amount)}</b></td><td><span class="v48-fin-status ${st}">${statusLabel(st)}</span></td><td><div class="v48-fin-actions">${st!=='pago'?`<button class="btn secondary" onclick="v48FinPay('pagar','${esc(x.id)}')">Marcar pago</button>`:''}<button class="btn secondary v48-fin-danger" onclick="v48FinDelete('pagar','${esc(x.id)}')">Excluir</button></div></td></tr>`}).join('')}</tbody></table>`}
+window.v48FinTab=function(x){tab=x;financeiro()};
+window.v48FinNew=function(kind){openModal(kind==='receber'?'Nova conta a receber':'Nova conta a pagar',`<div class="formgrid"><div class="field"><label>${kind==='receber'?'Cliente':'Fornecedor'}</label><input id="v48FinParty" placeholder="Nome"></div><div class="field"><label>Valor</label><input id="v48FinAmount" type="number" min="0" step="0.01"></div><div class="field"><label>Vencimento</label><input id="v48FinDue" type="date" value="${today()}"></div><div class="field full"><label>Descrição</label><input id="v48FinDesc" placeholder="Ex.: impressão, material, fornecedor..."></div></div><div class="actions"><button class="btn secondary" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="v48FinSave('${kind}')">Salvar</button></div>`)};
+window.v48FinSave=function(kind){const d=dbx(),amount=Number(document.getElementById('v48FinAmount')?.value||0),party=document.getElementById('v48FinParty')?.value.trim(),desc=document.getElementById('v48FinDesc')?.value.trim(),due=document.getElementById('v48FinDue')?.value||today();if(amount<=0||!party||!desc)return notify('Preencha nome, valor e descrição.');const item={id:'fin-'+Date.now(),amount,due_date:due,description:desc,status:'pendente',created_at:new Date().toISOString()};if(kind==='receber'){item.customer=party;d.receivables.push(item)}else{item.supplier=party;d.payables.push(item)}savex();closeModal();financeiro();notify('Lançamento financeiro registrado.')};
+window.v48FinPay=function(kind,id){const d=dbx(),arr=kind==='receber'?d.receivables:d.payables,x=arr.find(v=>String(v.id)===String(id));if(!x)return;x.status='pago';x.paid_at=new Date().toISOString();savex();financeiro();notify(kind==='receber'?'Recebimento registrado.':'Pagamento registrado.')};
+window.v48FinDelete=function(kind,id){const d=dbx(),key=kind==='receber'?'receivables':'payables';d[key]=(d[key]||[]).filter(v=>String(v.id)!==String(id));savex();financeiro();notify('Lançamento excluído.')};
+const oldRender=window.render;if(typeof oldRender==='function'){window.render=function(page='dashboard'){if(page==='financeiro'){financeiro();setTimeout(()=>{document.querySelectorAll('.nav button[data-page]').forEach(b=>b.style.display=(b.dataset.page==='financeiro'||b.dataset.page==='usuarios')?'':b.style.display)},0);return}return oldRender.apply(this,arguments)}}
 })();
 </script>
 </body>
