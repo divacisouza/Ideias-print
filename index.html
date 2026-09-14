@@ -2325,7 +2325,7 @@ setTimeout(v4Render,500);
 'use strict';
 const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-function dbx(){window.db=window.db||{};window.db.receivables=Array.isArray(window.db.receivables)?window.db.receivables:[];window.db.payables=Array.isArray(window.db.payables)?window.db.payables:[];return window.db}
+function dbx(){window.db=db;db.receivables=Array.isArray(db.receivables)?db.receivables:[];db.payables=Array.isArray(db.payables)?db.payables:[];return db}
 function savex(){if(typeof window.save==='function')window.save();else localStorage.setItem('graficaDB',JSON.stringify(dbx()))}
 function today(){return new Date().toISOString().slice(0,10)}
 function monthStart(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10)}
