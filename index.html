@@ -1147,7 +1147,7 @@ function orderTableProfessional(arr){
      </div>
      <div class="order-finance"><span>${o.discount?`Desconto: ${money(o.discount)}`:''}</span><strong>${money(o.total||0)}</strong></div>
      <div class="order-status"><span class="badge ${orderStatusClass(o.status)}">${esc(o.status)}</span>${next?`<button class="btn status-next" onclick="setOrderStatus(${o.id},'${next}')">✓ ${next}</button>`:''}</div>
-     <div class="order-actions"><button class="btn secondary order-action" onclick="editOrder(${o.id})">✏️ Editar</button><button class="btn danger order-action" onclick="deleteOrder(${o.id})">🗑️ Excluir</button></div>
+     <div class="order-actions"><button class="btn secondary order-action" onclick="v12ReceiptFromOrder(${o.id})">🧾 Recibo</button><button class="btn secondary order-action" onclick="editOrder(${o.id})">✏️ Editar</button><button class="btn danger order-action" onclick="deleteOrder(${o.id})">🗑️ Excluir</button></div>
    </div>`;
  }).join('')}</div>`;
 }
@@ -2416,6 +2416,24 @@ const oldRender=window.render;if(typeof oldRender==='function'){window.render=fu
  window.v12FillOrder=function(){const id=document.getElementById('v12Order')?.value;if(!id)return;const o=orders().find(x=>String(x.id)===String(id));if(!o)return;document.getElementById('v12Customer').value=o.client||'Balcão';document.getElementById('v12Amount').value=Number(o.total||0);document.getElementById('v12Method').value=o.pay||'Pix';document.getElementById('v12Desc').value=`Serviços referentes ao Pedido #${o.id}`};
  window.v12SaveReceipt=function(){const d=ensure(),customer=document.getElementById('v12Customer')?.value.trim(),amount=Number(document.getElementById('v12Amount')?.value||0),desc=document.getElementById('v12Desc')?.value.trim();if(!customer||amount<=0||!desc)return notify('Informe cliente, valor e descrição.');const item={id:'rec-'+Date.now(),number:document.getElementById('v12Number').value,customer,document:document.getElementById('v12Doc').value.trim(),amount,method:document.getElementById('v12Method').value,date:document.getElementById('v12Date').value||today(),description:desc,order_id:document.getElementById('v12Order').value||''};d.receipts.push(item);saveR();closeModal();receiptPage();notify('Recibo salvo.');};
  window.v12DeleteReceipt=function(id){if(!confirm('Excluir este recibo?'))return;db.receipts=ensure().receipts.filter(r=>String(r.id)!==String(id));saveR();receiptPage();notify('Recibo excluído.')};
+window.v12ReceiptFromOrder=function(orderId){
+ const d=ensure(),o=db.orders.find(x=>Number(x.id)===Number(orderId));
+ if(!o)return notify('Venda não encontrada.');
+ if(o.status==='Cancelado')return notify('Não é possível gerar recibo de uma venda cancelada.');
+ if(String(o.pay||'').toLowerCase()==='a pagar' && !confirm('Esta venda está marcada como “A pagar”. Gerar o recibo mesmo assim?'))return;
+ const existing=d.receipts.find(r=>String(r.order_id)===String(o.id));
+ if(existing){
+   if(confirm(`Já existe o Recibo #${existing.number} para o Pedido #${o.id}. Deseja imprimir este recibo novamente?`))return v12PrintReceipt(existing.id);
+   return;
+ }
+ const clientName=o.client||'Balcão';
+ const itemDesc=(o.items||[]).map(i=>`${Number(i.qty||0)}x ${i.name||'Serviço'}`).join(', ')||o.summary||`Pedido #${o.id}`;
+ const item={id:'rec-'+Date.now(),number:nextNo(),customer:clientName,document:'',amount:Number(o.total||0),method:o.pay||'Não informado',date:o.date||today(),description:`Pedido #${o.id} — ${itemDesc}`,order_id:String(o.id)};
+ d.receipts.push(item);saveR();
+ notify(`Recibo #${item.number} gerado para o Pedido #${o.id}.`);
+ v12PrintReceipt(item.id);
+};
+
  window.v12PrintReceipt=async function(id){const r=ensure().receipts.find(x=>String(x.id)===String(id));if(!r)return;const c=await cfg();const logo=typeof LOGO!=='undefined'?LOGO:'';const footer=[c.company_name||'Ideias Print',c.cnpj,c.phone,c.email,c.address].filter(Boolean).join(' • ');const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Recibo #${esc(r.number)}</title><style>@page{size:A4;margin:18mm}body{margin:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.wrap{max-width:760px;margin:auto;padding:20px}.logo{display:block;max-width:280px;max-height:120px;width:auto;height:auto;object-fit:contain;margin:0 auto 18px}.title{text-align:center;font-size:22px;font-weight:800;margin:0 0 6px}.nr{text-align:center;color:#555;font-size:12px;margin-bottom:28px}.body{font-size:15px;line-height:1.8;min-height:260px}.amount{text-align:center;font-size:22px;font-weight:800;margin:22px 0}.footer{text-align:center;border-top:1px solid #ccc;padding-top:14px;font-size:11px;color:#444;line-height:1.55}</style></head><body><div class="wrap">${logo?`<img class="logo" src="${logo}" alt="Ideias Print">`:''}<div class="title">RECIBO</div><div class="nr">Nº ${esc(r.number)} · ${esc(r.date||'')}</div><div class="body">Recebemos de <strong>${esc(r.customer)}</strong>${r.document?` (CPF/CNPJ ${esc(r.document)})`:''} a importância de:</div><div class="amount">${money(r.amount)}</div><div class="body">Referente a <strong>${esc(r.description)}</strong>.<br>Forma de pagamento: <strong>${esc(r.method||'Não informado')}</strong>.</div><div class="footer">${esc(footer)}</div></div><scr"+"ipt>window.onload=()=>setTimeout(()=>window.print(),250)</scr"+"ipt></body></html>`;const w=window.open('','_blank');if(!w)return notify('O navegador bloqueou a janela de impressão. Permita pop-ups para o sistema.');w.document.open();w.document.write(html);w.document.close()};
  const old=window.render;window.render=function(page='dashboard'){if(page==='recibos'){receiptPage();return}return old.apply(this,arguments)};
  const b=document.querySelector('.nav-receipts');if(b){b.addEventListener('click',()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active')})}
