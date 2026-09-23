@@ -568,6 +568,8 @@ button,.btn,input,select{touch-action:manipulation}
 
 <style>
 .v48-temp-password{margin-top:12px;padding:12px;border:1px solid #dfe4ea;border-radius:12px;background:#f7f9fb;font-size:13px}.v48-temp-password code{display:block;margin-top:7px;padding:10px;border-radius:9px;background:#101114;color:#fff;font-weight:900;letter-spacing:1px;font-size:16px;text-align:center}.v48-warning{margin-top:10px;font-size:12px;line-height:1.45;color:#7a5a00;background:#fff7df;border:1px solid #f0d98a;border-radius:10px;padding:10px}.v48-first-login{display:grid;gap:10px}.v48-first-login input{width:100%;height:44px;box-sizing:border-box;border:1px solid #dfe3e8;border-radius:10px;padding:0 12px;font-size:14px}.v48-first-login button{height:44px;border:0;border-radius:10px;background:#101114;color:#fff;font-weight:800;cursor:pointer}
+.nav-section-label{font-size:10px;font-weight:900;letter-spacing:.08em;color:#98a2b3;padding:12px 12px 5px;text-transform:uppercase}.nav-admin-only{display:none}.nav-spacer{flex:1;min-height:8px}
+@media(max-width:820px){.nav-section-label{padding-top:9px}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#101114">
@@ -587,17 +589,21 @@ button,.btn,input,select{touch-action:manipulation}
   <div class="brand"><img id="logo" alt="Logo da gráfica"></div>
   <div class="nav">
     <button class="active" data-page="dashboard">🏠 &nbsp;Dashboard</button>
-    <button data-page="orcamentos">🧾 &nbsp;Orçamentos</button>
     <button data-page="pedidos">🛒 &nbsp;Vendas / Pedidos</button>
+    <button data-page="orcamentos">🧾 &nbsp;Orçamentos</button>
     <button data-page="clientes">👥 &nbsp;Clientes</button>
-    <button data-page="servicos">🖨️ &nbsp;Serviços</button>
+    <button class="nav-receipts" data-page="recibos">🧾 &nbsp;Recibos</button>
+    <button data-page="producao">🏭 &nbsp;Produção</button>
+
     <button data-page="caixa">💰 &nbsp;Caixa</button>
-    <button data-page="financeiro">📈 &nbsp;Financeiro</button><button class="btn nav-receipts" onclick="render('recibos')">🧾 &nbsp;Recibos</button>
-    <button data-page="calculadora">🧮 &nbsp;Calculadora</button>
+
+    <button data-page="servicos">🖨️ &nbsp;Serviços</button>
     <button data-page="custos">📊 &nbsp;Custos</button>
     <button data-page="backup">💾 &nbsp;Backup</button>
-    <button data-page="producao">🏭 &nbsp;Produção</button>
     <button data-page="configuracoes">⚙️ &nbsp;Configurações</button>
+    <button data-page="usuarios">👤 &nbsp;Usuários</button>
+
+    <div class="nav-spacer"></div>
     <button id="sideLogoutBtn" type="button">🚪 &nbsp;SAIR</button>
   </div>
 </aside>
@@ -1147,7 +1153,7 @@ function orderTableProfessional(arr){
      </div>
      <div class="order-finance"><span>${o.discount?`Desconto: ${money(o.discount)}`:''}</span><strong>${money(o.total||0)}</strong></div>
      <div class="order-status"><span class="badge ${orderStatusClass(o.status)}">${esc(o.status)}</span>${next?`<button class="btn status-next" onclick="setOrderStatus(${o.id},'${next}')">✓ ${next}</button>`:''}</div>
-     <div class="order-actions"><button class="btn secondary order-action" onclick="v12ReceiptFromOrder(${o.id})">🧾 Recibo</button><button class="btn secondary order-action" onclick="editOrder(${o.id})">✏️ Editar</button><button class="btn danger order-action" onclick="deleteOrder(${o.id})">🗑️ Excluir</button></div>
+     <div class="order-actions"><button class="btn secondary order-action" onclick="editOrder(${o.id})">✏️ Editar</button><button class="btn danger order-action" onclick="deleteOrder(${o.id})">🗑️ Excluir</button></div>
    </div>`;
  }).join('')}</div>`;
 }
@@ -1216,7 +1222,8 @@ function saveOrder(){
    const s=db.services.find(x=>x.id==sid); if(!s)continue;
    const qty=Math.max(1,Number(r.querySelector('.item-qty').value||1));
    const price=Number(r.querySelector('.item-price').value||0);
-   items.push({serviceId:s.id,name:s.name,qty,price,total:qty*price});
+   const cost=Number(s.cost||0);
+   items.push({serviceId:s.id,name:s.name,qty,price,cost,total:qty*price,totalCost:qty*cost});
  }
  if(!items.length)return toast('Selecione pelo menos um serviço.');
  const subtotal=items.reduce((a,i)=>a+i.total,0);
@@ -1231,7 +1238,7 @@ function saveOrder(){
  const status=document.getElementById('qstatus').value;
  db.orders.push({
    id:oid, client:co?.name||'Balcão', clientId:cid||'', subtotal, discount, discountType, discountInput, total, summary:items.map(i=>`${i.qty}x ${i.name}`).join(', '),
-   status, date:today(), dueDate:document.getElementById('qDueDate')?.value||'', pay, items, obs:document.getElementById('orderObs')?.value||''
+   status, date:today(), dueDate:document.getElementById('qDueDate')?.value||'', pay, items, cost:items.reduce((a,i)=>a+Number(i.totalCost||0),0), profit:total-items.reduce((a,i)=>a+Number(i.totalCost||0),0), obs:document.getElementById('orderObs')?.value||''
  });
  if(pay!=='A pagar' && status!=='Cancelado')db.cash.push({id:Date.now(),date:today(),type:'entrada',value:total,desc:`Pedido #${oid} — ${co?.name||'Balcão'}`,method:pay});
  save();closeModal();render('pedidos');toast(`Venda #${oid} registrada!`);
@@ -1307,7 +1314,7 @@ function saveEditedOrder(id){
  const o=db.orders.find(x=>Number(x.id)===Number(id)); if(!o)return;
  const arr=(window.__editOrderItems||[]).filter(it=>it.serviceId);
  if(!arr.length)return toast('Adicione pelo menos um item.');
- const items=arr.map(it=>{const svc=db.services.find(x=>String(x.id)===String(it.serviceId));const qty=Math.max(1,Number(it.qty||1));const price=Math.max(0,Number(it.price||0));return{serviceId:svc.id,name:svc.name,qty,price,total:qty*price};});
+ const items=arr.map((it,idx)=>{const svc=db.services.find(x=>String(x.id)===String(it.serviceId));if(!svc)return null;const qty=Math.max(1,Number(it.qty||1));const price=Math.max(0,Number(it.price||0));const previous=Array.isArray(o.items)?o.items[idx]:null;const sameService=previous&&String(previous.serviceId)===String(svc.id);const cost=sameService&&previous.cost!=null?Number(previous.cost||0):Number(svc.cost||0);return{serviceId:svc.id,name:svc.name,qty,price,cost,total:qty*price,totalCost:qty*cost};}).filter(Boolean);
  const oldPaid=o.pay&&o.pay!=='A pagar'&&o.status!=='Cancelado';
  const newPay=document.getElementById('eoPay').value;
  const newStatus=document.getElementById('eoStatus').value;
@@ -1319,7 +1326,7 @@ function saveEditedOrder(id){
  o.clientId=document.getElementById('eoClient').value||'';
  const co=db.clients.find(c=>String(c.id)===String(o.clientId));
  o.client=co?.name||'Balcão'; o.pay=newPay; o.status=newStatus; o.dueDate=document.getElementById('eoDueDate')?.value||''; o.obs=document.getElementById('eoObs').value.trim();
- o.items=items; o.subtotal=subtotal; o.discount=discount; o.discountType=discountType; o.discountInput=discountInput; o.total=newTotal; o.summary=items.map(i=>`${i.qty}x ${i.name}`).join(', ');
+ o.items=items; o.cost=items.reduce((a,i)=>a+Number(i.totalCost||0),0); o.profit=newTotal-o.cost; o.estimated_cost=o.cost; o.estimated_profit=o.profit; o.subtotal=subtotal; o.discount=discount; o.discountType=discountType; o.discountInput=discountInput; o.total=newTotal; o.summary=items.map(i=>`${i.qty}x ${i.name}`).join(', ');
  const hasCash=db.cash.some(x=>x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`));
  if(newStatus==='Cancelado' || newPay==='A pagar'){
    db.cash=db.cash.filter(x=>!(x.type==='entrada'&&String(x.desc||'').startsWith(`Pedido #${id} —`)));
@@ -1962,7 +1969,7 @@ setTimeout(v4Render,500);
       db.__cloudMaps.quotes[q.id]=id;
       await sb.from('quote_items').delete().eq('quote_id',id);
       for(const it of (q.items||[])){
-        await sb.from('quote_items').insert({quote_id:id,product_id:db.__cloudMaps.products[it.serviceId]||null,description:it.name,quantity:Number(it.qty||1),unit_cost:0,unit_price:Number(it.price||0),total_price:Number(it.total||0),total_cost:0,finishes:[],notes:null});
+        await sb.from('quote_items').insert({quote_id:id,product_id:db.__cloudMaps.products[it.serviceId]||null,description:it.name,quantity:Number(it.qty||1),unit_cost:Number(it.cost||0),unit_price:Number(it.price||0),total_price:Number(it.total||0),total_cost:Number(it.totalCost!=null?it.totalCost:(Number(it.qty||0)*Number(it.cost||0))),finishes:[],notes:null});
       }
     }
   }
@@ -1972,13 +1979,14 @@ setTimeout(v4Render,500);
       let id=db.__cloudMaps.orders[o.id];
       const customer_id=db.__cloudMaps.customers[o.clientId]||null;
       const statusMap={'Em produção':'em_producao','Pronto':'pronto','Entregue':'entregue','Cancelado':'cancelado'};
-      const payload={order_number:Number(o.id),quote_id:null,customer_id,status:statusMap[o.status]||'aberto',total:Number(o.total||0),estimated_cost:Number(o.cost||0),estimated_profit:Number((o.total||0)-(o.cost||0)),notes:o.obs||null};
+      const orderCost=Number(o.cost!=null?o.cost:o.estimated_cost||0);
+      const payload={order_number:Number(o.id),quote_id:null,customer_id,status:statusMap[o.status]||'aberto',total:Number(o.total||0),estimated_cost:orderCost,estimated_profit:Number(o.total||0)-orderCost,notes:o.obs||null};
       if(id){const r=await sb.from('orders').update(payload).eq('id',id).select('id').maybeSingle(); if(r.error) id=null;}
       if(!id){const found=await sb.from('orders').select('id').eq('order_number',Number(o.id)).maybeSingle(); if(found.data?.id) id=found.data.id; else {const r=await sb.from('orders').insert(payload).select('id').single(); if(r.error) throw r.error; id=r.data.id;}}
       db.__cloudMaps.orders[o.id]=id;
       await sb.from('order_items').delete().eq('order_id',id);
       for(const it of (o.items||[])){
-        await sb.from('order_items').insert({order_id:id,product_id:db.__cloudMaps.products[it.serviceId]||null,description:it.name,quantity:Number(it.qty||1),unit_cost:0,unit_price:Number(it.price||0),total_price:Number(it.total||0),total_cost:0,finishes:[],notes:null});
+        await sb.from('order_items').insert({order_id:id,product_id:db.__cloudMaps.products[it.serviceId]||null,description:it.name,quantity:Number(it.qty||1),unit_cost:Number(it.cost!=null?it.cost:0),unit_price:Number(it.price||0),total_price:Number(it.total!=null?it.total:(Number(it.qty||0)*Number(it.price||0))),total_cost:Number(it.totalCost!=null?it.totalCost:(Number(it.qty||0)*Number(it.cost||0))),finishes:[],notes:null});
       }
     }
   }
@@ -2131,13 +2139,13 @@ setTimeout(v4Render,500);
 (function(){
   'use strict';
   const PERMS={
-    admin:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','financeiro','calculadora','custos','backup','producao','configuracoes','usuarios'],
-    gerente:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','financeiro','calculadora','custos','producao'],
-    atendente:['dashboard','orcamentos','pedidos','clientes','producao'],
-    producao:['dashboard','pedidos','producao']
+    admin:['dashboard','orcamentos','pedidos','clientes','servicos','caixa','financeiro','calculadora','custos','backup','producao','configuracoes','usuarios','recibos'],
+    gerente:['dashboard','orcamentos','pedidos','clientes','caixa','financeiro','calculadora','custos','producao','recibos'],
+    atendente:['dashboard','pedidos','clientes','producao','recibos'],
+    producao:['dashboard','orcamentos','pedidos','clientes','producao','recibos']
   };
   const ROLE_NAMES={admin:'Administrador',gerente:'Gerente',atendente:'Atendente',producao:'Produção'};
-  const ROLE_DESC={admin:'Acesso total e administração de usuários.',gerente:'Operação, financeiro e gestão, sem usuários.',atendente:'Vendas, clientes, orçamentos, pedidos e produção.',producao:'Pedidos e acompanhamento da produção.'};
+  const ROLE_DESC={admin:'Acesso total e administração de usuários.',gerente:'Operação, caixa e gestão, sem serviços ou usuários.',atendente:'Vendas, clientes, recibos e produção.',producao:'Vendas/pedidos e acompanhamento da produção.'};
   let me=null, ready=false, originalRender=null, booted=false;
   const sb=()=>window.__ipSupabase;
   function notify(t){if(typeof window.toast==='function')window.toast(t);else console.log(t)}
@@ -2146,9 +2154,9 @@ setTimeout(v4Render,500);
   function applyNav(){
     document.querySelectorAll('.nav button[data-page]').forEach(b=>{
       const p=b.dataset.page;
-      if(p==='usuarios') b.style.display=me?.role==='admin'?'':'none';
-      else b.style.display=allowed(p)?'':'none';
+      b.style.display=(p==='usuarios' ? (me?.role==='admin'?'':'none') : (allowed(p)?'':'none'));
     });
+    document.querySelectorAll('.nav .nav-admin-only').forEach(el=>{el.style.display=me?.role==='admin'?'':'none'});
     const lb=document.getElementById('v48RoleBadge'); if(lb)lb.textContent=me?roleName(me.role):'';
     const eb=document.getElementById('v13UserEmail'); if(eb&&me?.email)eb.textContent=me.email;
   }
@@ -2226,7 +2234,7 @@ setTimeout(v4Render,500);
     return users.map(u=>{
       const self=me&&u.id===me.id;
       const status=u.active?'Ativo':'Bloqueado';
-      return `<div class="v48-user-card"><div class="v48-user-main"><strong>${esc(u.full_name||'Sem nome')} ${self?'<span class="v48-role">Você</span>':''}</strong><small>${esc(u.email||'')}</small><div class="v48-userbar"><span class="v48-role">${esc(roleName(u.role))}</span><span class="v48-muted">${status}</span></div></div><div class="v48-user-actions"><button class="btn secondary" onclick="v48EditRole('${u.id}','${esc(u.role)}')">Nível</button>${self?'':`<button class="btn ${u.active?'secondary':'primary'}" onclick="v48Toggle('${u.id}',${!u.active})">${u.active?'Bloquear':'Ativar'}</button>`}</div></div>`
+      return `<div class="v48-user-card"><div class="v48-user-main"><strong>${esc(u.full_name||'Sem nome')} ${self?'<span class="v48-role">Você</span>':''}</strong><small>${esc(u.email||'')}</small><div class="v48-userbar"><span class="v48-role">${esc(roleName(u.role))}</span><span class="v48-muted">${status}</span></div></div><div class="v48-user-actions"><button class="btn secondary" onclick="v48EditRole('${u.id}','${esc(u.role)}')">Nível</button>${self?'':`<button class="btn ${u.active?'secondary':'primary'}" onclick="v48Toggle('${u.id}',${!u.active})">${u.active?'Bloquear':'Ativar'}</button><button type="button" class="btn secondary v48-delete-user" data-user-id="${esc(u.id)}" data-user-name="${esc(u.full_name||'Sem nome')}">Excluir</button>`}</div></div>`
     }).join('');
   }
   function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
@@ -2311,12 +2319,41 @@ setTimeout(v4Render,500);
   window.v48Toggle=async function(id,active){
     try{const r=await sb().functions.invoke('admin-users',{body:{action:'active',user_id:id,active}});if(r.error)throw r.error;notify(active?'Usuário ativado.':'Usuário bloqueado.');await usuariosPanel()}catch(e){console.error(e);notify('Não foi possível alterar o status.');}
   };
+  window.v48DeleteUser=async function(id,name){
+    if(!id)return;
+    if(!window.confirm(`Excluir o usuário "${String(name||'Sem nome')}"?\n\nEsta ação é permanente e removerá o acesso ao Ideias Print.`))return;
+    try{
+      const r=await sb().functions.invoke('admin-users',{body:{action:'delete',user_id:id}});
+      if(r.error)throw r.error;
+      if(r.data?.error)throw new Error(r.data.error);
+      notify('Usuário excluído com sucesso.');
+      await usuariosPanel();
+    }catch(e){
+      console.error('admin-users delete',e);
+      notify('Não foi possível excluir o usuário: '+(e?.message||'tente novamente.'));
+    }
+  };
   window.v48OpenUsers=usuariosPanel;
-  // Insert the menu item once, without changing the existing V47 layout.
+  // Use the existing menu item. Do not create a second Usuários button.
   function addMenu(){
-    const nav=document.querySelector('.nav'); if(!nav||document.getElementById('v48NavUsuarios'))return;
-    const b=document.createElement('button'); b.id='v48NavUsuarios';b.dataset.page='usuarios';b.type='button';b.innerHTML='👤 &nbsp;Usuários';b.style.display='none';
-    const logout=document.getElementById('sideLogoutBtn');nav.insertBefore(b,logout||null);b.onclick=()=>usuariosPanel(); const c=document.querySelector('.nav button[data-page="configuracoes"]'); if(c)c.onclick=()=>configuracoesPanel(); applyNav();
+    const nav=document.querySelector('.nav'); if(!nav)return;
+    const b=nav.querySelector('button[data-page="usuarios"]');
+    if(b){ b.id='v48NavUsuarios'; b.type='button'; b.onclick=()=>usuariosPanel(); }
+    const c=nav.querySelector('button[data-page="configuracoes"]');
+    if(c)c.onclick=()=>configuracoesPanel();
+    if(!window.__v48DeleteHandler){
+      window.__v48DeleteHandler=true;
+      document.addEventListener('click',e=>{
+        const btn=e.target.closest?.('.v48-delete-user');
+        if(!btn)return;
+        e.preventDefault();
+        e.stopPropagation();
+        const id=btn.getAttribute('data-user-id');
+        const name=btn.getAttribute('data-user-name')||'Sem nome';
+        window.v48DeleteUser(id,name);
+      });
+    }
+    applyNav();
   }
   // role badge next to user email
   function addBadge(){const bar=document.getElementById('v13Userbar');if(!bar||document.getElementById('v48RoleBadge'))return;const s=document.createElement('span');s.id='v48RoleBadge';s.className='v48-role';bar.insertBefore(s,bar.querySelector('button')||null)}
@@ -2416,27 +2453,8 @@ const oldRender=window.render;if(typeof oldRender==='function'){window.render=fu
  window.v12FillOrder=function(){const id=document.getElementById('v12Order')?.value;if(!id)return;const o=orders().find(x=>String(x.id)===String(id));if(!o)return;document.getElementById('v12Customer').value=o.client||'Balcão';document.getElementById('v12Amount').value=Number(o.total||0);document.getElementById('v12Method').value=o.pay||'Pix';document.getElementById('v12Desc').value=`Serviços referentes ao Pedido #${o.id}`};
  window.v12SaveReceipt=function(){const d=ensure(),customer=document.getElementById('v12Customer')?.value.trim(),amount=Number(document.getElementById('v12Amount')?.value||0),desc=document.getElementById('v12Desc')?.value.trim();if(!customer||amount<=0||!desc)return notify('Informe cliente, valor e descrição.');const item={id:'rec-'+Date.now(),number:document.getElementById('v12Number').value,customer,document:document.getElementById('v12Doc').value.trim(),amount,method:document.getElementById('v12Method').value,date:document.getElementById('v12Date').value||today(),description:desc,order_id:document.getElementById('v12Order').value||''};d.receipts.push(item);saveR();closeModal();receiptPage();notify('Recibo salvo.');};
  window.v12DeleteReceipt=function(id){if(!confirm('Excluir este recibo?'))return;db.receipts=ensure().receipts.filter(r=>String(r.id)!==String(id));saveR();receiptPage();notify('Recibo excluído.')};
-window.v12ReceiptFromOrder=function(orderId){
- const d=ensure(),o=db.orders.find(x=>Number(x.id)===Number(orderId));
- if(!o)return notify('Venda não encontrada.');
- if(o.status==='Cancelado')return notify('Não é possível gerar recibo de uma venda cancelada.');
- if(String(o.pay||'').toLowerCase()==='a pagar' && !confirm('Esta venda está marcada como “A pagar”. Gerar o recibo mesmo assim?'))return;
- const existing=d.receipts.find(r=>String(r.order_id)===String(o.id));
- if(existing){
-   if(confirm(`Já existe o Recibo #${existing.number} para o Pedido #${o.id}. Deseja imprimir este recibo novamente?`))return v12PrintReceipt(existing.id);
-   return;
- }
- const clientName=o.client||'Balcão';
- const itemDesc=(o.items||[]).map(i=>`${Number(i.qty||0)}x ${i.name||'Serviço'}`).join(', ')||o.summary||`Pedido #${o.id}`;
- const item={id:'rec-'+Date.now(),number:nextNo(),customer:clientName,document:'',amount:Number(o.total||0),method:o.pay||'Não informado',date:o.date||today(),description:`Pedido #${o.id} — ${itemDesc}`,order_id:String(o.id)};
- d.receipts.push(item);saveR();
- notify(`Recibo #${item.number} gerado para o Pedido #${o.id}.`);
- v12PrintReceipt(item.id);
-};
-
  window.v12PrintReceipt=async function(id){const r=ensure().receipts.find(x=>String(x.id)===String(id));if(!r)return;const c=await cfg();const logo=typeof LOGO!=='undefined'?LOGO:'';const footer=[c.company_name||'Ideias Print',c.cnpj,c.phone,c.email,c.address].filter(Boolean).join(' • ');const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Recibo #${esc(r.number)}</title><style>@page{size:A4;margin:18mm}body{margin:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.wrap{max-width:760px;margin:auto;padding:20px}.logo{display:block;max-width:280px;max-height:120px;width:auto;height:auto;object-fit:contain;margin:0 auto 18px}.title{text-align:center;font-size:22px;font-weight:800;margin:0 0 6px}.nr{text-align:center;color:#555;font-size:12px;margin-bottom:28px}.body{font-size:15px;line-height:1.8;min-height:260px}.amount{text-align:center;font-size:22px;font-weight:800;margin:22px 0}.footer{text-align:center;border-top:1px solid #ccc;padding-top:14px;font-size:11px;color:#444;line-height:1.55}</style></head><body><div class="wrap">${logo?`<img class="logo" src="${logo}" alt="Ideias Print">`:''}<div class="title">RECIBO</div><div class="nr">Nº ${esc(r.number)} · ${esc(r.date||'')}</div><div class="body">Recebemos de <strong>${esc(r.customer)}</strong>${r.document?` (CPF/CNPJ ${esc(r.document)})`:''} a importância de:</div><div class="amount">${money(r.amount)}</div><div class="body">Referente a <strong>${esc(r.description)}</strong>.<br>Forma de pagamento: <strong>${esc(r.method||'Não informado')}</strong>.</div><div class="footer">${esc(footer)}</div></div><scr"+"ipt>window.onload=()=>setTimeout(()=>window.print(),250)</scr"+"ipt></body></html>`;const w=window.open('','_blank');if(!w)return notify('O navegador bloqueou a janela de impressão. Permita pop-ups para o sistema.');w.document.open();w.document.write(html);w.document.close()};
- const old=window.render;window.render=function(page='dashboard'){if(page==='recibos'){receiptPage();return}return old.apply(this,arguments)};
- const b=document.querySelector('.nav-receipts');if(b){b.addEventListener('click',()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active')})}
+ const old=window.render;window.render=function(page='dashboard'){if(page==='recibos'){receiptPage();document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page));return}return old.apply(this,arguments)};
 })();
 </script>
 
