@@ -1256,7 +1256,7 @@ function saveOrder(){
    status, date:today(), dueDate:document.getElementById('qDueDate')?.value||'', pay, items, cost:items.reduce((a,i)=>a+Number(i.totalCost||0),0), profit:total-items.reduce((a,i)=>a+Number(i.totalCost||0),0), obs:document.getElementById('orderObs')?.value||''
  });
  if(pay!=='A pagar' && status!=='Cancelado')db.cash.push({id:Date.now(),date:today(),type:'entrada',value:total,desc:`Pedido #${oid} — ${co?.name||'Balcão'}`,method:pay});
- save();closeModal();render('pedidos');toast(`Venda #${oid} registrada!`);
+ save();closeModal();render('pedidos');toast(`Venda #${oid} registrada!`);setTimeout(()=>{if(typeof window.v12OrderActions==='function')window.v12OrderActions(oid);},120);
 }
 
 function editOrder(id){
@@ -2464,7 +2464,7 @@ const oldRender=window.render;if(typeof oldRender==='function'){window.render=fu
    document.getElementById('page').innerHTML=`<div class="v12-rec"><div class="page-header"><h1>🧾 Recibos</h1><p>Gere recibos profissionais da Ideias Print para imprimir ou salvar em PDF.</p></div>
    <div class="v12-rec-kpis"><div class="v12-rec-kpi"><span>Recibos emitidos</span><b>${list.length}</b></div><div class="v12-rec-kpi"><span>Valor registrado</span><b>${money(total)}</b></div><div class="v12-rec-kpi"><span>Próximo número</span><b>#${nextNo()}</b></div></div>
    <div class="card"><div class="v12-rec-head"><div><h2 style="margin:0">Histórico</h2><div class="v12-rec-note">Os dados da empresa são puxados de Configurações.</div></div><button class="btn primary" onclick="v12NewReceipt()">+ Novo recibo</button></div>
-   <div class="v12-rec-list" style="margin-top:14px">${list.length?list.map(r=>`<div class="v12-rec-row"><div class="v12-rec-main"><strong>Recibo #${esc(r.number)} · ${esc(r.customer)}</strong><small>${esc(r.description)} · ${money(r.amount)} · ${esc(r.date||'')}</small></div><div class="v12-rec-actions"><button class="btn secondary" onclick="v12PrintReceipt('${esc(r.id)}')">Imprimir / PDF</button><button class="btn secondary" onclick="v12DeleteReceipt('${esc(r.id)}')">Excluir</button></div></div>`).join(''):'<div class="v12-rec-note" style="padding:22px;text-align:center">Nenhum recibo emitido ainda.</div>'}</div></div></div>`;
+   <div class="v12-rec-list" style="margin-top:14px">${list.length?list.map(r=>`<div class="v12-rec-row"><div class="v12-rec-main"><strong>Recibo #${esc(r.number)} · ${esc(r.customer)}</strong><small>${esc(r.description)} · ${money(r.amount)} · ${esc(r.date||'')}</small></div><div class="v12-rec-actions"><button class="btn secondary" onclick="v12PrintReceipt('${esc(r.id)}')">Imprimir / PDF</button><button class="btn secondary" onclick="v12SendWhatsApp('${esc(r.id)}')">WhatsApp</button><button class="btn secondary" onclick="v12DeleteReceipt('${esc(r.id)}')">Excluir</button></div></div>`).join(''):'<div class="v12-rec-note" style="padding:22px;text-align:center">Nenhum recibo emitido ainda.</div>'}</div></div></div>`;
  }
  window.v12NewReceipt=function(){
    const opts=orders().map(o=>`<option value="${esc(o.id)}">Pedido #${esc(o.id)} — ${esc(o.client||'Balcão')} — ${money(o.total)}</option>`).join('');
@@ -2472,6 +2472,42 @@ const oldRender=window.render;if(typeof oldRender==='function'){window.render=fu
  };
  window.v12FillOrder=function(){const id=document.getElementById('v12Order')?.value;if(!id)return;const o=orders().find(x=>String(x.id)===String(id));if(!o)return;document.getElementById('v12Customer').value=o.client||'Balcão';document.getElementById('v12Amount').value=Number(o.total||0);document.getElementById('v12Method').value=o.pay||'Pix';document.getElementById('v12Desc').value=`Serviços referentes ao Pedido #${o.id}`};
  window.v12SaveReceipt=function(){const d=ensure(),customer=document.getElementById('v12Customer')?.value.trim(),amount=Number(document.getElementById('v12Amount')?.value||0),desc=document.getElementById('v12Desc')?.value.trim();if(!customer||amount<=0||!desc)return notify('Informe cliente, valor e descrição.');const item={id:'rec-'+Date.now(),number:document.getElementById('v12Number').value,customer,document:document.getElementById('v12Doc').value.trim(),amount,method:document.getElementById('v12Method').value,date:document.getElementById('v12Date').value||today(),description:desc,order_id:document.getElementById('v12Order').value||''};d.receipts.push(item);saveR();closeModal();receiptPage();notify('Recibo salvo.');};
+ window.v12CreateReceiptFromOrder=function(orderId,printNow=true){
+   const d=ensure(),o=(d.orders||[]).find(x=>String(x.id)===String(orderId));
+   if(!o)return notify('Pedido não encontrado.');
+   let r=d.receipts.find(x=>String(x.order_id)===String(o.id));
+   if(!r){
+     const c=(d.clients||[]).find(x=>String(x.id)===String(o.clientId||''));
+     r={id:'rec-'+Date.now(),number:nextNo(),customer:o.client||c?.name||'Balcão',document:c?.document||c?.cpf||c?.cnpj||'',amount:Number(o.total||0),method:o.pay||'Não informado',date:o.date||today(),description:`Serviços referentes ao Pedido #${o.id}${o.summary?' — '+o.summary:''}`,order_id:String(o.id)};
+     d.receipts.push(r);saveR();
+   }
+   if(printNow){setTimeout(()=>v12PrintReceipt(r.id),80);}
+   return r;
+ };
+ window.v12WhatsAppOrder=function(orderId){
+   const d=ensure(),o=(d.orders||[]).find(x=>String(x.id)===String(orderId));if(!o)return notify('Pedido não encontrado.');
+   const c=(d.clients||[]).find(x=>String(x.id)===String(o.clientId||''));
+   let phone=(c?.phone||o.phone||'').replace(/\D/g,'');
+   if(!phone)return notify('Este cliente não possui telefone cadastrado. Cadastre o telefone para enviar pelo WhatsApp.');
+   if(phone.length<=11)phone='55'+phone;
+   const text=`Olá, ${o.client||c?.name||'cliente'}! 😊\n\nSegue o recibo da Ideias Print referente ao Pedido #${o.id}.\n\nValor: ${money(o.total)}\nForma de pagamento: ${o.pay||'Não informado'}\nDescrição: ${o.summary||'Serviços gráficos'}\n\nObrigado pela preferência!`;
+   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(text),'_blank');
+ };
+ window.v12SendWhatsApp=function(id){
+   const r=ensure().receipts.find(x=>String(x.id)===String(id));if(!r)return;
+   const d=ensure(),o=(d.orders||[]).find(x=>String(x.id)===String(r.order_id||'')),c=o?(d.clients||[]).find(x=>String(x.id)===String(o.clientId||'')):null;
+   let phone=(c?.phone||'').replace(/\D/g,'');
+   if(!phone)return notify('Este cliente não possui telefone cadastrado.');
+   if(phone.length<=11)phone='55'+phone;
+   const text=`Olá, ${r.customer}! 😊\n\nSegue seu recibo da Ideias Print.\nRecibo Nº ${r.number}\nValor: ${money(r.amount)}\nForma de pagamento: ${r.method||'Não informado'}\nReferente a: ${r.description}\n\nObrigado pela preferência!`;
+   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(text),'_blank');
+ };
+ window.v12OrderActions=function(orderId){
+   const d=ensure(),o=(d.orders||[]).find(x=>String(x.id)===String(orderId));if(!o)return;
+   const c=(d.clients||[]).find(x=>String(x.id)===String(o.clientId||''));
+   const hasPhone=!!String(c?.phone||'').replace(/\D/g,'');
+   openModal('🧾 Venda registrada',`<div style="display:grid;gap:14px"><div><h3 style="margin:0 0 6px">Pedido #${esc(o.id)} registrado com sucesso.</h3><div class="v12-rec-note">Você já pode gerar o recibo e, se o telefone estiver cadastrado, enviar os dados ao cliente pelo WhatsApp.</div></div><div class="actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn primary" onclick="v12CreateReceiptFromOrder('${esc(o.id)}',true)">🧾 Gerar recibo</button><button class="btn secondary" onclick="v12WhatsAppOrder('${esc(o.id)}')" ${hasPhone?'':'disabled title="Cadastre o telefone do cliente"'}>💬 Enviar WhatsApp</button></div><button class="btn secondary" style="width:100%" onclick="closeModal()">Fechar</button></div>`);
+ };
  window.v12DeleteReceipt=function(id){if(!confirm('Excluir este recibo?'))return;db.receipts=ensure().receipts.filter(r=>String(r.id)!==String(id));saveR();receiptPage();notify('Recibo excluído.')};
  window.v12PrintReceipt=async function(id){const r=ensure().receipts.find(x=>String(x.id)===String(id));if(!r)return;const c=await cfg();const logo=typeof LOGO!=='undefined'?LOGO:'';const footer=[c.company_name||'Ideias Print',c.cnpj,c.phone,c.email,c.address].filter(Boolean).join(' • ');const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Recibo #${esc(r.number)}</title><style>@page{size:A4;margin:18mm}body{margin:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.wrap{max-width:760px;margin:auto;padding:20px}.logo{display:block;max-width:280px;max-height:120px;width:auto;height:auto;object-fit:contain;margin:0 auto 18px}.title{text-align:center;font-size:22px;font-weight:800;margin:0 0 6px}.nr{text-align:center;color:#555;font-size:12px;margin-bottom:28px}.body{font-size:15px;line-height:1.8;min-height:260px}.amount{text-align:center;font-size:22px;font-weight:800;margin:22px 0}.footer{text-align:center;border-top:1px solid #ccc;padding-top:14px;font-size:11px;color:#444;line-height:1.55}</style></head><body><div class="wrap">${logo?`<img class="logo" src="${logo}" alt="Ideias Print">`:''}<div class="title">RECIBO</div><div class="nr">Nº ${esc(r.number)} · ${esc(r.date||'')}</div><div class="body">Recebemos de <strong>${esc(r.customer)}</strong>${r.document?` (CPF/CNPJ ${esc(r.document)})`:''} a importância de:</div><div class="amount">${money(r.amount)}</div><div class="body">Referente a <strong>${esc(r.description)}</strong>.<br>Forma de pagamento: <strong>${esc(r.method||'Não informado')}</strong>.</div><div class="footer">${esc(footer)}</div></div><scr"+"ipt>window.onload=()=>setTimeout(()=>window.print(),250)</scr"+"ipt></body></html>`;const w=window.open('','_blank');if(!w)return notify('O navegador bloqueou a janela de impressão. Permita pop-ups para o sistema.');w.document.open();w.document.write(html);w.document.close()};
  const old=window.render;window.render=function(page='dashboard'){if(page==='recibos'){receiptPage();document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page));return}return old.apply(this,arguments)};
