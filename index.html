@@ -2267,7 +2267,7 @@ setTimeout(v4Render,500);
       <div class="v48-muted">Administração do sistema. Estas opções ficam disponíveis somente para o Administrador.</div>
       <div class="v48-settings-grid">
         <button type="button" class="v48-settings-card" onclick="v48OpenEmpresaConfig()"><span>🏢</span><b>Empresa</b><small>Dados da Ideias Print, contato, endereço e validade dos orçamentos.</small></button>
-        <button type="button" class="v48-settings-card" onclick="v48OpenUsers()"><span>👤</span><b>Usuários e permissões</b><small>Criar, editar nível, bloquear, ativar e excluir usuários.</small></button>
+        <button type="button" class="v48-settings-card" id="v48OpenUsersCard" onclick="window.v48OpenUsers && window.v48OpenUsers()"><span>👤</span><b>Usuários e permissões</b><small>Criar, editar nível, bloquear, ativar e excluir usuários.</small></button>
         <button type="button" class="v48-settings-card" onclick="backup()"><span>💾</span><b>Backup e restauração</b><small>Fazer backup, restaurar dados e recuperar a cópia automática.</small></button>
       </div>
     </div>`;
@@ -2302,11 +2302,12 @@ setTimeout(v4Render,500);
 
   async function usuariosPanel(){
     if(me?.role!=='admin'){notify('Acesso restrito ao administrador.');return}
+    openModal('👤 Usuários',`<div class="v48-muted" style="padding:18px 0">Carregando usuários...</div>`);
     try{
       const users=await loadUsers();
       const body=`<div class="v48-muted">Administre quem pode entrar no sistema e o que cada nível pode acessar.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" onclick="v48NewUser()">+ Novo usuário</button><button class="btn secondary" onclick="usuariosPanel()">Atualizar</button></div><div class="v48-user-list">${usersHtml(users)}</div><div class="v48-levels">${Object.keys(ROLE_NAMES).map(r=>`<div class="v48-level"><b>${roleName(r)}</b><small>${ROLE_DESC[r]}</small></div>`).join('')}</div>`;
       openModal('👤 Usuários',body);
-    }catch(e){console.error('admin-users list',e);notify('Não foi possível carregar os usuários.');}
+    }catch(e){console.error('admin-users list',e);openModal('👤 Usuários',`<div class="v48-warning">Não foi possível carregar a lista de usuários.</div><div class="v48-muted" style="margin-top:10px">${esc(e?.message||'Erro desconhecido')}</div><div style="margin-top:12px"><button class="btn secondary" onclick="usuariosPanel()">Tentar novamente</button></div>`);}
   }
   window.v48NewUser=function(){
     openModal('Novo usuário',`<div class="v48-form"><label>Nome</label><input id="v48Name" placeholder="Nome completo"><label>E-mail</label><input id="v48Email" type="email" placeholder="E-mail de acesso"><label>Nível de acesso</label><select id="v48Role"><option value="atendente">Atendente</option><option value="gerente">Gerente</option><option value="producao">Produção</option><option value="admin">Administrador</option></select><div class="v48-muted">O sistema vai gerar uma senha provisória. No primeiro acesso, o usuário será obrigado a criar uma senha própria.</div><button class="btn primary" onclick="v48CreateUser()">Criar usuário</button></div>`);
