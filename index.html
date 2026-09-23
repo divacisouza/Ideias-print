@@ -13,7 +13,7 @@ aside{width:245px;background:var(--black);color:#fff;padding:20px 14px;position:
 .brand{padding:4px 8px 20px;border-bottom:1px solid #292c31;margin-bottom:16px}.brand img{width:100%;height:92px;object-fit:contain;object-position:center;background:#000;border-radius:10px}
 .nav button{width:100%;background:transparent;color:#cdd0d5;text-align:left;padding:12px 14px;border-radius:10px;margin:2px 0}.nav button:hover,.nav button.active{background:#202328;color:#fff}.nav button.active{box-shadow:inset 4px 0 var(--blue)}
 main{margin-left:245px;width:calc(100% - 245px);padding:24px;max-width:1500px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.top h1{margin:0;font-size:25px}.top p{margin:4px 0 0;color:var(--muted)}
-.btn{padding:10px 15px;border-radius:9px;font-weight:700}.primary{background:var(--blue);color:#00151d}.secondary{background:#fff;border:1px solid var(--line)}.pink{background:var(--pink);color:#fff}.yellow{background:var(--yellow)}
+.btn{padding:10px 15px;border-radius:9px;font-weight:700}.primary{background:var(--blue);color:#fff}.secondary{background:#fff;border:1px solid var(--line)}.pink{background:var(--pink);color:#fff}.yellow{background:var(--yellow)}
 .grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 3px 12px #00000006}.stat{border-top:4px solid var(--blue)}.stat:nth-child(2){border-top-color:var(--pink)}.stat:nth-child(3){border-top-color:var(--yellow)}.stat:nth-child(4){border-top-color:var(--green)}.stat .label{color:var(--muted);font-size:13px}.stat .value{font-size:25px;font-weight:800;margin-top:8px}
 .section{margin-top:18px}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.section-head h2{font-size:17px;margin:0}
 .table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:11px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.table th{font-size:12px;color:var(--muted);text-transform:uppercase}.empty{text-align:center;color:var(--muted);padding:30px}
@@ -1413,7 +1413,8 @@ function editService(id){serviceForm(db.services.find(s=>s.id===id))}
 function saveService(id){const obj={id:id||Date.now(),name:document.getElementById('sname').value.trim(),unit:document.getElementById('sunit').value,cost:Number(document.getElementById('scost').value),price:Number(document.getElementById('sprice').value)};if(!obj.name)return toast('Informe o nome.');if(id)db.services=db.services.map(s=>s.id===id?obj:s);else db.services.push(obj);save();closeModal();render('servicos');toast('Serviço salvo!')}
 
 function cash(){
- const canceled=db.cash.filter(isCanceledOrderEntry),valid=db.cash.filter(x=>!isCanceledOrderEntry(x)),p=window.__cashFilters||{period:'all',type:'all',search:'',from:'',to:''};
+ const isCanceledOrderEntryLocal=x=>{const d=String(x?.desc||'');return d.includes('Pedido #') && /cancelad/i.test(d);};
+ const canceled=db.cash.filter(isCanceledOrderEntryLocal),valid=db.cash.filter(x=>!isCanceledOrderEntryLocal(x)),p=window.__cashFilters||{period:'all',type:'all',search:'',from:'',to:''};
  const parseLocalDate=x=>{const [y,m,d]=String(x||'').split('-').map(Number);return new Date(y||1970,(m||1)-1,d||1)};
  const now=new Date(),cy=now.getFullYear(),cm=now.getMonth(),cd=now.getDate(),todayKey=today();
  const weekStart=new Date(cy,cm,cd);weekStart.setDate(weekStart.getDate()-((weekStart.getDay()+6)%7));
